@@ -246,22 +246,37 @@ html_code = """
                           </div>
                       </div>
 
-                      <!-- 4. Lịch trình (DD/MM/YYYY) -->
+                      <!-- 4. Lịch trình (Chuẩn giao diện dd/mm/yyyy kèm icon lịch) -->
                       <div class="space-y-3 bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
                           <div class="font-semibold text-slate-200 border-b border-slate-700 pb-1">4. Lịch Trình (DD/MM/YYYY)</div>
                           <div>
-                               <label class="text-slate-400 block mb-1">Ngày Book Chỗ</label>
-                               <input type="text" v-model="tempShipment.bookingDate" placeholder="DD/MM/YYYY" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                               <label class="text-slate-400 block mb-1">Ngày dự kiến đặt booking</label>
+                               <div class="relative">
+                                    <input type="text" v-model="tempShipment.bookingDate" placeholder="dd/mm/yyyy" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 pr-10 text-slate-100 font-mono text-xs">
+                                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <i class="fa-regular fa-calendar"></i>
+                                    </span>
+                               </div>
                                <span v-if="formErrors.bookingDate" class="text-rose-400 text-[10px] mt-1 block">{{ formErrors.bookingDate }}</span>
                           </div>
                           <div>
                                <label class="text-slate-400 block mb-1">ETD Thực Tế</label>
-                               <input type="text" v-model="tempShipment.etd" placeholder="DD/MM/YYYY" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                               <div class="relative">
+                                    <input type="text" v-model="tempShipment.etd" placeholder="dd/mm/yyyy" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 pr-10 text-slate-100 font-mono text-xs">
+                                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <i class="fa-regular fa-calendar"></i>
+                                    </span>
+                               </div>
                                <span v-if="formErrors.etd" class="text-rose-400 text-[10px] mt-1 block">{{ formErrors.etd }}</span>
                           </div>
                           <div>
                                <label class="text-slate-400 block mb-1">ETA Los Angeles</label>
-                               <input type="text" v-model="tempShipment.eta" placeholder="DD/MM/YYYY" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                               <div class="relative">
+                                    <input type="text" v-model="tempShipment.eta" placeholder="dd/mm/yyyy" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 pr-10 text-slate-100 font-mono text-xs">
+                                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <i class="fa-regular fa-calendar"></i>
+                                    </span>
+                               </div>
                                <span v-if="formErrors.eta" class="text-rose-400 text-[10px] mt-1 block">{{ formErrors.eta }}</span>
                           </div>
                       </div>
@@ -445,18 +460,18 @@ html_code = """
                        eta: '30/10/2026'
                    },
                    tempShipment: {
-                       shipper: 'QA Furniture Co., Ltd (Bình Phước)',
-                       consignee: 'MTA Cabinets LLC (Texas)',
-                       salesPerson: 'Bắp (Sales Forwarding)',
-                       pol: 'Cái Mép TCIT (VNVUT)',
-                       pod: 'Los Angeles, CA (USLAX)',
-                       commodity: 'Wooden kitchen cabinets (HS 940340)',
-                       containerType: "40'HC",
-                       volume: 5,
-                       preferredCarrier: 'Wan Hai Lines',
-                       bookingDate: '13/10/2026',
-                       etd: '15/10/2026',
-                       eta: '30/10/2026'
+                       shipper: 'Tên doanh nghiệp/cá nhân',
+                       consignee: 'Tên doanh nghiệp/cá nhân',
+                       salesPerson: 'Tên',
+                       pol: '',
+                       pod: '',
+                       commodity: '',
+                       containerType: "",
+                       volume: ,
+                       preferredCarrier: '',
+                       bookingDate: 'dd/mm/yyyy',
+                       etd: 'dd/mm/yyyy',
+                       eta: 'dd/mm/yyyy'
                    },
                    carriers: [
                        {
@@ -532,13 +547,13 @@ html_code = """
                         this.formErrors.targetMargin = 'Biên lãi phải từ 0 đến 100%.';
                     }
                     if (!this.isValidDate(this.tempShipment.bookingDate)) {
-                        this.formErrors.bookingDate = 'Sai định dạng hoặc ngày không tồn tại (DD/MM/YYYY).';
+                        this.formErrors.bookingDate = 'Sai định dạng hoặc ngày không tồn tại (dd/mm/yyyy).';
                     }
                     if (!this.isValidDate(this.tempShipment.etd)) {
-                        this.formErrors.etd = 'Sai định dạng hoặc ngày không tồn tại (DD/MM/YYYY).';
+                        this.formErrors.etd = 'Sai định dạng hoặc ngày không tồn tại (dd/mm/yyyy).';
                     }
                     if (!this.isValidDate(this.tempShipment.eta)) {
-                        this.formErrors.eta = 'Sai định dạng hoặc ngày không tồn tại (DD/MM/YYYY).';
+                        this.formErrors.eta = 'Sai định dạng hoặc ngày không tồn tại (dd/mm/yyyy).';
                     }
                     return Object.keys(this.formErrors).length === 0;
                 },
@@ -549,7 +564,6 @@ html_code = """
                     }
                     this.shipment = JSON.parse(JSON.stringify(this.tempShipment));
                     
-                    // ĐỒNG BỘ NGÀY ETD MỚI TỪ FORM VÀO CÁC HÃNG TÀU
                     this.carriers.forEach(carrier => {
                         carrier.etd = this.shipment.etd;
                     });
