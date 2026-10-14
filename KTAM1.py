@@ -441,8 +441,8 @@ html_code = """
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: '2026-10-29',
-                        eta: '2026-11-07'
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     },
                     tempShipment: {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
@@ -454,9 +454,9 @@ html_code = """
                         containerType: "40'HC",
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
-                        bookingDate: '2026-10-16',
-                        etd: '2026-10-29',
-                        eta: '2026-11-07'
+                        bookingDate: 'yyyy-mm-dd',
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     },
                     // Kho dữ liệu chuẩn cho các hãng tàu khi người dùng đổi lựa chọn
                     allCarriersData: {
@@ -479,7 +479,7 @@ html_code = """
                             name: 'Wan Hai Lines',
                             code: 'WHL',
                             vessel: 'WAN HAI A01 E012',
-                            etd: '2026-10-29',
+                            etd: '2025-10-15',
                             delayDays: 2,
                             oceanFreight: 5230,
                             thc: 200,
@@ -557,8 +557,8 @@ html_code = """
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: '2026-10-29',
-                        eta: '2026-11-07'
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     };
                     this.tempShipment = JSON.parse(JSON.stringify(this.shipment));
                     this.carriers = [{
@@ -566,7 +566,7 @@ html_code = """
                         name: 'Wan Hai Lines',
                         code: 'WHL',
                         vessel: 'WAN HAI A01 E012',
-                        etd: '2026-10-29',
+                        etd: '2025-10-15',
                         delayDays: 2,
                         oceanFreight: 5230,
                         thc: 200,
