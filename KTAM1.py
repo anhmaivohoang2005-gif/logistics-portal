@@ -466,7 +466,7 @@ html_code = """
                         containerType: "40'HC",
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
-                        bookingDate: '2025-10-13',
+                        bookingDate: 'yyyy-mm-dd',
                         etd: 'yyyy-mm-dd',
                         eta: 'yyyy-mm-dd'
                     },
