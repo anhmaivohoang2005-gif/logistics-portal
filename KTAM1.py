@@ -74,7 +74,7 @@ html_code = """
                        <i class="fa-solid fa-shield-halved mr-1"></i> Dự Báo Space
                    </button>
                    <button @click="currentTab = 'peakSeason'" :class="currentTab === 'peakSeason' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition">
-                       <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mùa Cao Điểm Thuế
+                       <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mùa Cao Điểm & Thị Trường
                    </button>
                    <button @click="currentTab = 'marketplace'" :class="currentTab === 'marketplace' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition">
                        <i class="fa-solid fa-right-left mr-1"></i> Sàn Slot Marketplace
@@ -88,8 +88,8 @@ html_code = """
                <div class="flex items-center gap-3">
                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                    <div>
-                       <strong class="text-white">Trạng thái đồng bộ:</strong>
-                       <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">Đã nạp dữ liệu chuẩn (QA Furniture - Cái Mép / LAX)</span>
+                       <strong class="text-white">Trạng thái hệ thống:</strong>
+                       <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">Đang mô phỏng tuyến: {{ shipment.pol }} → {{ shipment.pod }}</span>
                        (Cập nhật lúc: <span class="text-slate-300 font-mono">{{ lastUpdatedTime }}</span>).
                    </div>
                </div>
@@ -110,12 +110,12 @@ html_code = """
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Biên Lợi Nhuận Gộp Thực Tế</div>
-                       <div class="text-2xl font-bold text-amber-400">3.8%</div>
-                       <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: {{ targetMargin }}% (Nhạy cảm chi phí)</div>
+                       <div class="text-2xl font-bold text-amber-400">{{ evaluatedCarriers[0] ? evaluatedCarriers[0].marginPercent : 0 }}%</div>
+                       <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: {{ targetMargin }}%</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Rủi Ro Trễ Tàu (Rolling Risk)</div>
-                       <div class="text-2xl font-bold text-rose-400">+2 Ngày Chậm</div>
+                       <div class="text-2xl font-bold text-rose-400">+{{ evaluatedCarriers[0] ? evaluatedCarriers[0].delayDays : 2 }} Ngày Chậm</div>
                        <div class="text-[11px] text-slate-400 mt-2">ETD kế hoạch: {{ shipment.etd }}</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
@@ -133,21 +133,21 @@ html_code = """
                        <div class="space-y-2 text-xs text-slate-300">
                            <div><strong>Shipper / Consignee:</strong> {{ shipment.shipper }} / {{ shipment.consignee }}</div>
                            <div><strong>Mặt hàng:</strong> {{ shipment.commodity }}</div>
-                           <div><strong>Hãng Tàu:</strong> {{ shipment.preferredCarrier }} | <strong>Vessel:</strong> {{ carriers[0].vessel }}</div>
+                           <div><strong>Hãng Tàu Lựa Chọn:</strong> <span class="text-blue-400 font-semibold">{{ shipment.preferredCarrier }}</span> | <strong>Vessel:</strong> {{ evaluatedCarriers[0] ? evaluatedCarriers[0].vessel : 'N/A' }}</div>
                            <div><strong>Ngày Book (Booking Date):</strong> {{ shipment.bookingDate }}</div>
-                           <div class="p-3 mt-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300">
-                               <i class="fa-solid fa-triangle-exclamation mr-1"></i> 
-                               Cảnh báo: Yêu cầu giữ chỗ đồng thời số lượng lớn đối mặt rủi ro thiếu space trầm trọng do làn sóng đẩy hàng trước chính sách thuế quan.
+                           <div class="p-3 mt-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300">
+                               <i class="fa-solid fa-circle-info mr-1"></i> 
+                               Hệ thống đang mô phỏng linh hoạt theo thông số thực tế bạn nhập tại tab "Thông Tin Lô Hàng".
                            </div>
                        </div>
                    </div>
 
                    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4">
                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                           <i class="fa-solid fa-circle-info text-blue-400"></i> Hướng Dẫn Sử Dụng Nút Cập Nhật
+                           <i class="fa-solid fa-circle-info text-blue-400"></i> Hướng Dẫn Vận Hành
                        </h3>
                        <p class="text-xs text-slate-300 leading-relaxed">
-                           Truy cập tab <strong>Thông Tin Lô Hàng</strong> để thay đổi hãng tàu, cảng, loại container hoặc số lượng. Sau đó nhấn nút <strong>“Hoàn thành và cập nhật dữ liệu”</strong> để hệ thống tự động đồng bộ hãng tàu mới sang bảng báo giá.
+                           Bạn có thể thay đổi hãng tàu, cảng đi/đến hoặc loại container ở tab <strong>Thông Tin Lô Hàng</strong>. Mọi chi phí cước biển, phụ phí THC, Seal/Doc và rủi ro sẽ tự động tính toán lại chính xác theo hãng tàu bạn chọn.
                        </p>
                    </div>
                </div>
@@ -331,7 +331,7 @@ html_code = """
                                     <div>
                                        <span class="text-slate-400 block">Biên Lợi Nhuận Gộp</span>
                                        <span class="font-bold text-amber-400">
-                                            {{ carrier.marginPercent }}% (Nhạy cảm)
+                                            {{ carrier.marginPercent }}%
                                        </span>
                                     </div>
                                     <div>
@@ -341,8 +341,8 @@ html_code = """
                                 </div>
 
                                 <div>
-                                    <span class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5">
-                                        <i class="fa-solid fa-triangle-exclamation"></i> Biên lãi mỏng dưới mục tiêu
+                                    <span class="px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold flex items-center gap-1.5">
+                                        <i class="fa-solid fa-calculator"></i> Tính toán tự động theo hãng
                                     </span>
                                 </div>
                            </div>
@@ -355,33 +355,45 @@ html_code = """
             <div v-if="currentTab === 'spaceForecast'" class="space-y-6 w-full">
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
                    <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                       <i class="fa-solid fa-shield-halved"></i> Phân Hệ C: Phân Tích Rủi Ro Thiếu Hụt Space
+                       <i class="fa-solid fa-shield-halved"></i> Phân Hệ C: Phân Tích Rủi Ro Thiếu Hụt Space & Quản Trị Tải Trọng
                    </h3>
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                        <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
-                           <div class="font-bold text-white text-sm">Nguyên Nhân Thiếu Space Giai Đoạn Cao Điểm</div>
-                           <p class="text-slate-300">• Làn sóng đẩy hàng (front-loading) mạnh mẽ trước thời hạn áp dụng thuế quan hàng hóa xuất khẩu.</p>
-                           <p class="text-slate-300">• Yêu cầu giữ chỗ đồng thời số lượng lớn container tạo sức ép tải trọng lên hãng tàu.</p>
+                           <div class="font-bold text-white text-sm">Nguyên Nhân Thiếu Space Theo Mùa Vụ</div>
+                           <p class="text-slate-300">• <strong>Mùa cao điểm lễ hội (Black Friday / Giáng Sinh):</strong> Nhu cầu nhập khẩu hàng tiêu dùng tăng vọt từ tháng 8 đến tháng 11.</p>
+                           <p class="text-slate-300">• <strong>Mùa cao điểm trước Tết (Lunar New Year Rush):</strong> Các nhà máy dồn dịch đẩy hàng trước kỳ nghỉ dài, gây nghẽn mạch tại cảng xuất.</p>
                        </div>
                        <div class="bg-gradient-to-br from-rose-500/10 to-orange-500/10 p-4 rounded-xl border border-rose-500/30 space-y-2">
-                           <div class="font-bold text-rose-400 text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Tác Động Tài Chính & Vận Hành</div>
-                           <p class="text-slate-300">• Biên lợi nhuận lô hàng mỏng, dễ bị xóa sạch nếu phát sinh chi phí lưu bãi hoặc mua space giá cao.</p>
-                           <p class="text-slate-300">• Nguy cơ hàng đến chậm so với yêu cầu của Consignee tại điểm đến.</p>
+                           <div class="font-bold text-rose-400 text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Giải Pháp Quản Trị Vận Hành</div>
+                           <p class="text-slate-300">• Chủ động đặt chỗ trước ít nhất 3-4 tuần đối với các tuyến chính đi bờ Tây/Đông nước Mỹ hoặc châu Âu.</p>
+                           <p class="text-slate-300">• Sử dụng nguồn slot dự phòng từ sàn Marketplace để bù đắp khi hãng tàu thông báo ngưng nhận booking (roll over).</p>
                        </div>
                    </div>
                </div>
             </div>
 
-            <!-- TAB 5: MÙA CAO ĐIỂM -->
+            <!-- TAB 5: MÙA CAO ĐIỂM & THỊ TRƯỜNG -->
             <div v-if="currentTab === 'peakSeason'" class="space-y-6 w-full">
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
                    <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                       <i class="fa-solid fa-calendar-days"></i> Phân Hệ D: Nhận Diện Mùa Cao Điểm & Bối Cảnh Chính Sách Thương Mại
+                       <i class="fa-solid fa-calendar-days"></i> Phân Hệ D: Nhận Diện Các Chu Kỳ Mùa Cao Điểm & Biến Động Thị Trường
                    </h3>
-                   <div class="space-y-3 text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-4 rounded-xl border border-slate-700">
-                       <div><strong>Sự kiện / Nguyên nhân:</strong> Làn sóng "chạy nước rút" xuất khẩu hàng hóa trước các mốc rà soát và áp thuế đối ứng.</div>
-                       <div><strong>Khung thời gian cao điểm:</strong> Giai đoạn thị trường chịu áp lực cung ứng mạnh.</div>
-                       <div><strong>Khuyến nghị cho Sales Forwarding:</strong> Cần chủ động khảo sát giá và đặt chỗ trước ít nhất 4 tuần đối với các lô hàng quy mô lớn trong các giai đoạn biến động chính sách thương mại.</div>
+                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                       <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
+                           <div class="font-bold text-blue-400 text-sm">1. Mùa Mua Sắm Cuối Năm (Black Friday & Giáng Sinh)</div>
+                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 8 – Tháng 11 hằng năm.</p>
+                           <p class="text-slate-300"><strong>Đặc điểm:</strong> Hãng tàu áp dụng phụ phí PSS (Peak Season Surcharge) và cước biển tăng mạnh do nhu cầu tiêu dùng toàn cầu đạt đỉnh.</p>
+                       </div>
+                       <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
+                           <div class="font-bold text-amber-400 text-sm">2. Mùa Trước Tết Nguyên Đán (Pre-LNY Rush)</div>
+                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 12 – Tháng 2 (tùy năm).</p>
+                           <p class="text-slate-300"><strong>Đặc điểm:</strong> Doanh nghiệp đẩy mạnh xuất khẩu trước khi các nhà máy đóng cửa nghỉ Tết, gây hiện tượng thiếu vỏ container và quá tải bãi.</p>
+                       </div>
+                       <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
+                           <div class="font-bold text-emerald-400 text-sm">3. Biến Động Nhiên Liệu & Địa Chính Trị</div>
+                           <p class="text-slate-300"><strong>Thời gian quanh năm:</strong></p>
+                           <p class="text-slate-300"><strong>Đặc điểm:</strong> Thay đổi tuyến hải trình quốc tế ảnh hưởng trực tiếp đến thời gian vận chuyển (transit time) và chi phí nhiên liệu phụ trội (BAF/CAF).</p>
+                       </div>
                    </div>
                </div>
             </div>
@@ -391,9 +403,9 @@ html_code = """
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
                    <div class="flex justify-between items-center pb-3 border-b border-slate-700/60">
                        <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                           <i class="fa-solid fa-right-left"></i> Phân Hệ E: Sàn Chuyển Nhượng Slot Space (DEMO Marketplace)
+                           <i class="fa-solid fa-right-left"></i> Phân Hệ E: Sàn Chuyển Nhượng Slot Space (Marketplace)
                        </h3>
-                       <span class="text-xs text-slate-400">Tuyến: <strong>Cái Mép → Los Angeles</strong></span>
+                       <span class="text-xs text-slate-400">Tuyến: <strong>{{ shipment.pol }} → {{ shipment.pod }}</strong></span>
                    </div>
 
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -410,7 +422,7 @@ html_code = """
                                 </div>
                            </div>
                            <div class="flex justify-between items-center pt-2 border-t border-slate-800">
-                                <span class="text-slate-300">Khả dụng: <strong>{{ slot.slots }} slot 40'HC</strong></span>
+                                <span class="text-slate-300">Khả dụng: <strong>{{ slot.slots }} slot {{ shipment.containerType }}</strong></span>
                                 <button @click="claimSlot(slot)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition font-medium">
                                     Gửi Yêu Cầu Nhượng Slot
                                 </button>
@@ -441,8 +453,8 @@ html_code = """
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: 'yyyy-mm-dd',
-                        eta: 'yyyy-mm-dd'
+                        etd: '2025-10-15',
+                        eta: '2025-11-02'
                     },
                     tempShipment: {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
@@ -454,11 +466,11 @@ html_code = """
                         containerType: "40'HC",
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
-                        bookingDate: 'yyyy-mm-dd',
-                        etd: 'yyyy-mm-dd',
-                        eta: 'yyyy-mm-dd'
+                        bookingDate: '2025-10-13',
+                        etd: '2025-10-15',
+                        eta: '2025-11-02'
                     },
-                    // Kho dữ liệu chuẩn cho các hãng tàu khi người dùng đổi lựa chọn
+                    // Kho dữ liệu chuẩn chi tiết cho từng hãng tàu
                     allCarriersData: {
                         'Wan Hai Lines': { name: 'Wan Hai Lines', code: 'WHL', vessel: 'WAN HAI A01 E012', oceanFreight: 5230, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5438, delayDays: 2 },
                         'Evergreen Line': { name: 'Evergreen Line', code: 'EMC', vessel: 'EVER GIVEN V.088E', oceanFreight: 5150, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 1 },
@@ -514,14 +526,14 @@ html_code = """
                     });
                 },
                 filteredMarketplaceList() {
-                    return this.marketplaceList.filter(s => s.pol.includes('Cái Mép'));
+                    return this.marketplaceList.filter(s => s.pol.includes(this.shipment.pol.split(' ')[0]));
                 }
             },
             methods: {
                 commitShipmentUpdate() {
                     this.shipment = JSON.parse(JSON.stringify(this.tempShipment));
                     
-                    // TỰ ĐỘNG CẬP NHẬT HÃNG TÀU VÀ BIỂU GIÁ THEO LỰA CHỌN TRONG FORM
+                    // LẤY ĐÚNG THÔNG TIN HÃNG TÀU NGƯỜI DÙNG CHỌN ĐỂ CẬP NHẬT CHI PHÍ VÀ THÔNG SỐ RIÊNG
                     const selectedCarrierName = this.shipment.preferredCarrier || 'Wan Hai Lines';
                     const templateData = this.allCarriersData[selectedCarrierName] || this.allCarriersData['Wan Hai Lines'];
 
@@ -541,7 +553,7 @@ html_code = """
                     }];
 
                     this.lastUpdatedTime = new Date().toLocaleTimeString();
-                    alert('Đã cập nhật thành công! Hãng tàu, ngày ETD và biểu giá đã đồng bộ.');
+                    alert('Đã cập nhật thông tin lô hàng và đồng bộ biểu giá theo hãng tàu mới thành công!');
                     this.currentTab = 'quotation';
                 },
                 resetToDefault() {
@@ -557,8 +569,8 @@ html_code = """
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: 'yyyy-mm-dd',
-                        eta: 'yyyy-mm-dd'
+                        etd: '2025-10-15',
+                        eta: '2025-11-02'
                     };
                     this.tempShipment = JSON.parse(JSON.stringify(this.shipment));
                     this.carriers = [{
