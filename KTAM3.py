@@ -1,3 +1,34 @@
+import streamlit as st
+
+st.set_page_config(
+    page_title="LogiSpace Simulator — Freight Quotation & Space Intelligence Platform",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# === CSS TÙY CHỈNH FULL MÀN HÌNH VÀ ẨN MENU STREAMLIT ===
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        
+        .block-container {
+            padding-top: 0rem !important;
+            padding-bottom: 0rem !important;
+            padding-left: 0rem !important;
+            padding-right: 0rem !important;
+            max-width: 100% !important;
+        }
+        
+        .stApp {
+            margin: 0px;
+            background-color: #0f172a;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+html_code = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -75,7 +106,7 @@
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Quy Mô Lô Hàng</div>
                        <div class="text-2xl font-bold text-white">{{ shipment.volume }} x {{ shipment.containerType }}</div>
-                       <div class="text-[11px] text-blue-400 mt-2">Tuyến: {{ shipment.pol }} → {{ shipment.pod }}</div>
+                       <div class="text-[11px] text-blue-400 mt-2">Tuyến: {{ shipment.pol }} &rarr; {{ shipment.pod }}</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Biên Lợi Nhuận Gộp Thực Tế</div>
@@ -239,7 +270,7 @@
                </div>
            </div>
 
-            <!-- TAB 3: BÁO GIÁ & BIÊN LÃI (ĐÃ ĐƯỢC NÂNG CẤP ĐỘNG THEO LÔ HÀNG) -->
+            <!-- TAB 3: BÁO GIÁ & BIÊN LÃI -->
             <div v-if="currentTab === 'quotation'" class="space-y-6 w-full">
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center pb-3 border-b border-slate-700/60 gap-3">
@@ -247,7 +278,7 @@
                            <h3 class="text-sm font-bold text-blue-400 flex items-center gap-2">
                                <i class="fa-solid fa-file-invoice-dollar"></i> Phân Hệ B: Báo Giá & Kiểm Soát Biên Lợi Nhuận
                            </h3>
-                           <p class="text-xs text-slate-400 mt-0.5">Lô hàng: <strong class="text-white">{{ shipment.volume }} x {{ shipment.containerType }}</strong> ({{ shipment.pol }} → {{ shipment.pod }})</p>
+                           <p class="text-xs text-slate-400 mt-0.5">Lô hàng: <strong class="text-white">{{ shipment.volume }} x {{ shipment.containerType }}</strong> ({{ shipment.pol }} &rarr; {{ shipment.pod }})</p>
                        </div>
                        <div class="flex items-center gap-2">
                            <span class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300">
@@ -280,7 +311,6 @@
                                 </div>
                            </div>
 
-                           <!-- CÁC KHOẢN PHÍ CHI TIẾT BIẾN ĐỔI THEO LOẠI CONT VÀ TUYẾN -->
                            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-xs w-full">
                                 <div>Cước biển (O/F): <strong class="text-slate-200">${{ carrier.oceanFreight }}</strong></div>
                                 <div>THC: <strong class="text-slate-200">${{ carrier.thc }}</strong></div>
@@ -355,12 +385,12 @@
                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                        <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
                            <div class="font-bold text-blue-400 text-sm">1. Mùa Mua Sắm Cuối Năm (Black Friday / Giáng Sinh)</div>
-                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 8 – Tháng 11.</p>
+                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 8 &ndash; Tháng 11.</p>
                            <p class="text-slate-300"><strong>Đặc điểm:</strong> Giá cước tăng cao do nhu cầu nhập hàng bán lẻ và thương mại điện tử bùng nổ.</p>
                        </div>
                        <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
                            <div class="font-bold text-amber-400 text-sm">2. Mùa Trước Tết Nguyên Đán (Pre-Lunar New Year)</div>
-                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 12 – Tháng 2.</p>
+                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 12 &ndash; Tháng 2.</p>
                            <p class="text-slate-300"><strong>Đặc điểm:</strong> Đỉnh điểm dồn hàng trước kỳ nghỉ Tết tại châu Á, nguy cơ thiếu vỏ cont và nghẽn cảng.</p>
                        </div>
                        <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
@@ -379,7 +409,7 @@
                        <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
                            <i class="fa-solid fa-right-left"></i> Phân Hệ E: Sàn Chuyển Nhượng Slot Space (DEMO Marketplace)
                        </h3>
-                       <span class="text-xs text-slate-400">Tuyến: <strong>{{ shipment.pol }} → {{ shipment.pod }}</strong></span>
+                       <span class="text-xs text-slate-400">Tuyến: <strong>{{ shipment.pol }} &rarr; {{ shipment.pod }}</strong></span>
                    </div>
 
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -444,7 +474,6 @@
                         etd: '2026-10-15',
                         eta: '2026-11-02'
                     },
-                    // KHO DỮ LIỆU CHUẨN THEO CÁC TUYẾN VÀ HÃNG TÀU (ĐỒNG BỘ DỮ LIỆU NĂM 2026)
                     allCarriersData: {
                         'Wan Hai Lines': { name: 'Wan Hai Lines', code: 'WHL', vessel: 'WAN HAI A01 E012', oceanFreight: 5230, thc: 200, sealDoc: 48, handlingPod: 90, delayDays: 2, currentSellRate: 5438 },
                         'Evergreen Line': { name: 'Evergreen Line', code: 'EMC', vessel: 'EVER GIVEN V.088E', oceanFreight: 5150, thc: 200, sealDoc: 45, handlingPod: 90, delayDays: 1, currentSellRate: 5350 },
@@ -471,17 +500,15 @@
                         }
                     ],
                     marketplaceList: [
-                        { id: 201, provider: 'VinaFreighter Partner', carrier: 'Evergreen', route: 'Cái Mép TCIT → Los Angeles', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Los Angeles, CA (USLAX)', etd: '2026-10-14', slots: 3, price: 5200 },
-                        { id: 202, provider: 'Global Logistics Corp', carrier: 'COSCO', route: 'Cái Mép TCIT → Long Beach', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Long Beach, CA (USLGB)', etd: '2026-10-16', slots: 2, price: 5180 },
-                        { id: 203, provider: 'Pacific Express', carrier: 'ONE', route: 'Cát Lái → Sydney', pol: 'Cát Lái (VNCLI)', pod: 'Sydney, Australia (AUSYD)', etd: '2026-10-18', slots: 4, price: 950 }
+                        { id: 201, provider: 'VinaFreighter Partner', carrier: 'Evergreen', route: 'Cái Mép TCIT &rarr; Los Angeles', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Los Angeles, CA (USLAX)', etd: '2026-10-14', slots: 3, price: 5200 },
+                        { id: 202, provider: 'Global Logistics Corp', carrier: 'COSCO', route: 'Cái Mép TCIT &rarr; Long Beach', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Long Beach, CA (USLGB)', etd: '2026-10-16', slots: 2, price: 5180 },
+                        { id: 203, provider: 'Pacific Express', carrier: 'ONE', route: 'Cát Lái &rarr; Sydney', pol: 'Cát Lái (VNCLI)', pod: 'Sydney, Australia (AUSYD)', etd: '2026-10-18', slots: 4, price: 950 }
                     ]
                 }
             },
             computed: {
-                // TỰ ĐỘNG TÍNH TOÁN CHI PHÍ DỰA TRÊN LOẠI CONT, TUYẾN VÀ SỐ LƯỢNG
                 evaluatedCarriers() {
                     return this.carriers.map(c => {
-                        // Hệ số điều chỉnh chi phí theo loại container
                         let containerFactor = 1.0;
                         let containerSurcharge = 0;
                         
@@ -493,16 +520,15 @@
                             containerSurcharge = 350;
                         } else if (this.shipment.containerType.includes("RF")) {
                             containerFactor = 1.50;
-                            containerSurcharge = 1200; // Phí điện lạnh reefer
+                            containerSurcharge = 1200;
                         } else if (this.shipment.containerType.includes("OT")) {
                             containerFactor = 1.30;
-                            containerSurcharge = 600; // Phí quá khổ open top
+                            containerSurcharge = 600;
                         }
 
-                        // Điều chỉnh cước biển theo tuyến đi Mỹ / Úc / Á
                         let routeBaseMultiplier = 1.0;
                         if (this.shipment.pod.includes('Sydney')) {
-                            routeBaseMultiplier = 0.22; // Tuyến ngắn hơn
+                            routeBaseMultiplier = 0.22;
                         } else if (this.shipment.pod.includes('Incheon')) {
                             routeBaseMultiplier = 0.15;
                         }
@@ -510,10 +536,7 @@
                         const adjustedOceanFreight = Math.round(c.oceanFreight * containerFactor * routeBaseMultiplier);
                         const adjustedThc = Math.round(c.thc * (this.shipment.containerType.includes("20'") ? 0.8 : 1.0));
                         
-                        // Tổng giá vốn cho 1 cont
                         const totalCostPerCont = adjustedOceanFreight + adjustedThc + c.sealDoc + c.handlingPod + Math.max(0, containerSurcharge);
-                        
-                        // Giá bán tối thiểu cần đạt theo mục tiêu biên lãi (%)
                         const minSellRateRequired = Math.ceil(totalCostPerCont / (1 - (this.targetMargin / 100)));
                         
                         const profitPerCont = c.currentSellRate - totalCostPerCont;
@@ -546,7 +569,6 @@
             watch: {
                 'tempShipment.etd'(newEtd) {
                     if (newEtd) {
-                        // Tự động tính ETA dựa trên tuyến POL - POD (ví dụ Cái Mép đi LAX mất 18 ngày)
                         let transitDays = 18;
                         if (this.tempShipment.pod.includes('Sydney')) transitDays = 12;
                         else if (this.tempShipment.pod.includes('Incheon')) transitDays = 7;
@@ -561,7 +583,6 @@
                 commitShipmentUpdate() {
                     this.shipment = JSON.parse(JSON.stringify(this.tempShipment));
                     
-                    // Cập nhật thông tin hãng tàu tương ứng từ kho dữ liệu
                     const selectedCarrierName = this.shipment.preferredCarrier || 'Wan Hai Lines';
                     const templateData = this.allCarriersData[selectedCarrierName] || this.allCarriersData['Wan Hai Lines'];
 
@@ -624,3 +645,6 @@
     </script>
 </body>
 </html>
+"""
+
+st.components.v1.html(html_code, height=980, scrolling=True)
