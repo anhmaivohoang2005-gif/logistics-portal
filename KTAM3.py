@@ -277,43 +277,52 @@ html_code = """
                </div>
             </div>
 
-            <!-- TAB 3: BÁO GIÁ & BIÊN LÃI (ĐÃ SỬA: tính động theo tuyến / loại cont / số lượng) -->
+            <!-- TAB 3: BÁO GIÁ & BIÊN LÃI (tính động theo tuyến / loại cont / số lượng) -->
             <div v-if="currentTab === 'quotation'" class="space-y-6 w-full">
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
-                   <div class="flex justify-between items-center pb-3 border-b border-slate-700/60">
+                   <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-1 pb-3 border-b border-slate-700/60">
                        <h3 class="text-sm font-bold text-blue-400 flex items-center gap-2">
                            <i class="fa-solid fa-file-invoice-dollar"></i> Phân Hệ B: Báo Giá & Kiểm Soát Biên Lợi Nhuận
                        </h3>
-                       <span class="text-xs text-slate-400">Lô hàng: <strong>{{ shipment.volume }} x {{ shipment.containerType }}</strong> ({{ shipment.pol }} → {{ shipment.pod }})</span>
+                       <span class="text-xs text-slate-400">Lô hàng: <strong class="text-slate-200">{{ shipment.volume }} x {{ shipment.containerType }}</strong> | {{ shipment.pol }} → {{ shipment.pod }}</span>
                    </div>
 
-                   <!-- CƠ SỞ TÍNH GIÁ -->
-                   <div class="rounded-xl border p-3 text-xs space-y-1.5"
-                        :class="quoteBasis.isFullData ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200' : 'bg-blue-500/10 border-blue-500/30 text-blue-200'">
-                       <div class="font-semibold flex items-center gap-2">
-                           <i class="fa-solid fa-database"></i>
-                           <span v-if="quoteBasis.isFullData">Cơ sở giá: DỮ LIỆU THỰC (R02 – Cái Mép → LAX, 40'HC, Wan Hai 05/2025)</span>
-                           <span v-else>Cơ sở giá: ĐIỀU CHỈNH TỪ DỮ LIỆU R02 THEO HỆ SỐ ƯỚC TÍNH</span>
+                   <!-- CƠ SỞ TÍNH GIÁ (thu gọn, bấm để xem chi tiết) -->
+                   <details class="rounded-xl border border-slate-700 bg-slate-900/50 text-xs">
+                       <summary class="cursor-pointer select-none p-3 flex flex-wrap items-center gap-2">
+                           <span v-if="quoteBasis.isFullData" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">Dữ liệu thực</span>
+                           <span v-else class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold">Giá ước tính</span>
+                           <span class="text-slate-400">
+                               {{ quoteBasis.isFullData ? 'Lấy đúng từ báo giá R02 (Cái Mép → LAX, 40HC)' : 'Điều chỉnh từ báo giá R02 theo tuyến và loại cont' }} — bấm để xem hệ số
+                           </span>
+                       </summary>
+                       <div class="px-3 pb-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                           <div class="bg-slate-950/50 rounded-lg p-2 border border-slate-800">
+                               <div class="text-slate-500">Cảng đến (POD)</div>
+                               <div class="text-slate-200 font-semibold">x{{ quoteBasis.podFactor }} <span class="font-normal text-slate-500">({{ quoteBasis.podSrc }})</span></div>
+                           </div>
+                           <div class="bg-slate-950/50 rounded-lg p-2 border border-slate-800">
+                               <div class="text-slate-500">Cảng đi (POL)</div>
+                               <div class="text-slate-200 font-semibold">+${{ quoteBasis.polAddon }} / 40' <span class="font-normal text-slate-500">({{ quoteBasis.polSrc }})</span></div>
+                           </div>
+                           <div class="bg-slate-950/50 rounded-lg p-2 border border-slate-800">
+                               <div class="text-slate-500">Loại cont {{ shipment.containerType }}</div>
+                               <div class="text-slate-200 font-semibold">Cước x{{ quoteBasis.contOf }} · THC x{{ quoteBasis.contThc }} <span class="font-normal text-slate-500">({{ quoteBasis.contSrc }})</span></div>
+                           </div>
                        </div>
-                       <div class="text-slate-300">
-                           Hệ số tuyến POD: <strong>x{{ quoteBasis.podFactor }}</strong> ({{ quoteBasis.podSrc }}) |
-                           Phụ phí POL: <strong>+${{ quoteBasis.polAddon }}/40'</strong> ({{ quoteBasis.polSrc }}) |
-                           Hệ số cont ({{ shipment.containerType }}): cước biển <strong>x{{ quoteBasis.contOf }}</strong>, THC <strong>x{{ quoteBasis.contThc }}</strong> ({{ quoteBasis.contSrc }})
-                       </div>
-                       <div class="text-slate-400">
-                           Phí theo <strong>cont</strong> (O/F, THC, Seal) nhân với {{ shipment.volume }} cont; phí theo <strong>bill/lô</strong> (AMS, Telex, Docs, Handling) chỉ tính 1 lần cho cả lô.
-                       </div>
-                   </div>
+                   </details>
 
                    <div class="space-y-4 w-full">
-                       <div v-for="carrier in evaluatedCarriers" :key="carrier.id" class="bg-slate-900/70 border border-slate-700/80 rounded-xl p-4 space-y-3 w-full">
+                       <div v-for="carrier in evaluatedCarriers" :key="carrier.id" class="bg-slate-900/70 border border-slate-700/80 rounded-xl p-4 space-y-4 w-full">
+
+                           <!-- Dòng 1: hãng tàu + trạng thái -->
                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-slate-200 border border-slate-700">
+                                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-slate-200 border border-slate-700 text-xs">
                                         {{ carrier.code }}
                                     </div>
                                     <div>
-                                        <div class="font-semibold text-slate-100 flex items-center gap-2">
+                                        <div class="font-semibold text-slate-100 flex flex-wrap items-center gap-2">
                                             {{ carrier.name }}
                                            <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">{{ carrier.vessel }}</span>
                                         </div>
@@ -322,55 +331,98 @@ html_code = """
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="text-right text-xs">
-                                    <span class="text-slate-400 block">Tổng Giá Vốn Toàn Lô ({{ shipment.volume }} x {{ shipment.containerType }})</span>
-                                    <span class="text-base font-bold text-blue-400">${{ carrier.totalCostShipment.toLocaleString() }} USD</span>
-                                    <span class="text-slate-500 block">≈ ${{ carrier.avgCostPerCont.toLocaleString() }} / cont</span>
-                                </div>
-                           </div>
-
-                           <div class="grid grid-cols-2 md:grid-cols-6 gap-2 bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-xs w-full">
-                                <div>Cước biển (O/F) /cont: <strong class="text-slate-200">${{ carrier.oceanFreight.toLocaleString() }}</strong></div>
-                                <div>THC /cont: <strong class="text-slate-200">${{ carrier.thc }}</strong></div>
-                                <div>Seal /cont: <strong class="text-slate-200">${{ carrier.seal }}</strong></div>
-                                <div>AMS + Telex + Docs + Handling (cả lô): <strong class="text-slate-200">${{ carrier.billFeesBuy }}</strong></div>
-                                <div>Handling (POD) (cả lô): <strong class="text-slate-200 text-rose-400">${{ carrier.handlingPod }}</strong></div>
-                                <div>Dự phòng rủi ro (cả lô): <strong class="text-slate-200">${{ carrier.reserveFee }}</strong></div>
-                           </div>
-                           <div class="pt-2 border-t border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                    <div>
-                                       <span class="text-slate-400 block">Giá Bán Cước ($/cont)</span>
-                                       <input type="number" :value="carrier.currentSellRate" @input="onSellRateInput($event)" class="w-28 bg-slate-800 border border-slate-700 rounded p-1 text-slate-100 font-bold mt-1">
-                                    </div>
-                                    <div>
-                                       <span class="text-slate-400 block">Giá Bán Tối Thiểu (Chuẩn {{ targetMargin }}%)</span>
-                                       <span class="font-bold text-emerald-400 text-sm">${{ carrier.minSellRateRequired.toLocaleString() }} USD</span>
-                                    </div>
-                                    <div>
-                                       <span class="text-slate-400 block">Biên Lợi Nhuận Gộp</span>
-                                       <span class="font-bold" :class="carrier.marginPercent < 0 ? 'text-rose-400' : (carrier.marginPercent < targetMargin ? 'text-amber-400' : 'text-emerald-400')">
-                                            {{ carrier.marginPercent }}% (Nhạy cảm)
-                                       </span>
-                                    </div>
-                                    <div>
-                                       <span class="text-slate-400 block">Tổng Lãi Toàn Lô ({{ shipment.volume }} cont)</span>
-                                       <span class="font-bold" :class="carrier.totalProfit < 0 ? 'text-rose-400' : 'text-emerald-400'">{{ carrier.totalProfit < 0 ? '-' : '' }}${{ Math.abs(carrier.totalProfit).toLocaleString() }} USD</span>
-                                       <span class="text-slate-500 block">Doanh thu lô: ${{ carrier.totalRevenue.toLocaleString() }}</span>
-                                    </div>
-                                </div>
-
                                 <div>
-                                    <span v-if="carrier.marginPercent < 0" class="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5">
+                                    <span v-if="carrier.marginPercent < 0" class="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold inline-flex items-center gap-1.5">
                                         <i class="fa-solid fa-circle-xmark"></i> Lô hàng đang lỗ
                                     </span>
-                                    <span v-else-if="carrier.marginPercent < targetMargin" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5">
-                                        <i class="fa-solid fa-triangle-exclamation"></i> Biên lãi mỏng dưới mục tiêu
+                                    <span v-else-if="carrier.marginPercent < targetMargin" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold inline-flex items-center gap-1.5">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Biên lãi dưới mục tiêu {{ targetMargin }}%
                                     </span>
-                                    <span v-else class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5">
+                                    <span v-else class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold inline-flex items-center gap-1.5">
                                         <i class="fa-solid fa-circle-check"></i> Đạt biên lãi mục tiêu
                                     </span>
+                                </div>
+                           </div>
+
+                           <!-- Dòng 2: bảng chi phí (giá vốn) -->
+                           <div class="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/60">
+                               <table class="w-full text-xs">
+                                   <thead>
+                                       <tr class="text-slate-500 text-left border-b border-slate-800">
+                                           <th class="p-2 font-medium">Khoản chi phí (giá vốn)</th>
+                                           <th class="p-2 font-medium text-right">Đơn giá</th>
+                                           <th class="p-2 font-medium text-right">Tính theo</th>
+                                           <th class="p-2 font-medium text-right">Thành tiền</th>
+                                       </tr>
+                                   </thead>
+                                   <tbody class="text-slate-300">
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Cước biển (O/F)</td>
+                                           <td class="p-2 text-right">${{ carrier.oceanFreight.toLocaleString() }}</td>
+                                           <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.oceanFreight * shipment.volume).toLocaleString() }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">THC (xếp dỡ tại cảng đi)</td>
+                                           <td class="p-2 text-right">${{ carrier.thc }}</td>
+                                           <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.thc * shipment.volume).toLocaleString() }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Seal (niêm phong)</td>
+                                           <td class="p-2 text-right">${{ carrier.seal }}</td>
+                                           <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.seal * shipment.volume).toLocaleString() }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Chứng từ & handling tại POL <span class="text-slate-500">(AMS, Telex, Docs, Handling)</span></td>
+                                           <td class="p-2 text-right">${{ carrier.billFeesBuy }}</td>
+                                           <td class="p-2 text-right text-slate-500">1 lô</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.billFeesBuy }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Handling tại POD</td>
+                                           <td class="p-2 text-right">${{ carrier.handlingPod }}</td>
+                                           <td class="p-2 text-right text-slate-500">1 lô</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.handlingPod }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Dự phòng rủi ro</td>
+                                           <td class="p-2 text-right">${{ carrier.reserveFee }}</td>
+                                           <td class="p-2 text-right text-slate-500">1 lô</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.reserveFee }}</td>
+                                       </tr>
+                                   </tbody>
+                                   <tfoot>
+                                       <tr class="bg-slate-900/80">
+                                           <td class="p-2 font-bold text-slate-200" colspan="3">
+                                               Tổng giá vốn toàn lô <span class="font-normal text-slate-500">(≈ ${{ carrier.avgCostPerCont.toLocaleString() }} / cont)</span>
+                                           </td>
+                                           <td class="p-2 text-right font-bold text-blue-400 text-sm">${{ carrier.totalCostShipment.toLocaleString() }}</td>
+                                       </tr>
+                                   </tfoot>
+                               </table>
+                           </div>
+
+                           <!-- Dòng 3: 4 chỉ số chính -->
+                           <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
+                                   <span class="text-slate-400 block mb-1">Giá bán cước ($/cont)</span>
+                                   <input type="number" :value="carrier.currentSellRate" @input="onSellRateInput($event)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-slate-100 font-bold">
+                                </div>
+                                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
+                                   <span class="text-slate-400 block mb-1">Giá bán tối thiểu (đạt {{ targetMargin }}%)</span>
+                                   <span class="font-bold text-emerald-400 text-base">${{ carrier.minSellRateRequired.toLocaleString() }}</span>
+                                   <span class="text-slate-500"> /cont</span>
+                                </div>
+                                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
+                                   <span class="text-slate-400 block mb-1">Biên lợi nhuận gộp</span>
+                                   <span class="font-bold text-base" :class="carrier.marginPercent < 0 ? 'text-rose-400' : (carrier.marginPercent < targetMargin ? 'text-amber-400' : 'text-emerald-400')">{{ carrier.marginPercent }}%</span>
+                                </div>
+                                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
+                                   <span class="text-slate-400 block mb-1">Tổng lãi toàn lô</span>
+                                   <span class="font-bold text-base" :class="carrier.totalProfit < 0 ? 'text-rose-400' : 'text-emerald-400'">{{ carrier.totalProfit < 0 ? '-' : '' }}${{ Math.abs(carrier.totalProfit).toLocaleString() }}</span>
+                                   <span class="text-slate-500 block">Doanh thu: ${{ carrier.totalRevenue.toLocaleString() }}</span>
                                 </div>
                            </div>
                        </div>
