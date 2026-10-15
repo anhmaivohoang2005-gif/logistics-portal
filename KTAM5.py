@@ -695,7 +695,7 @@ html_code = """<!DOCTYPE html>
                    </div>
                    
                    <div v-if="filteredMarketplaceExchange.length === 0" class="text-center py-10 text-slate-500 text-xs">
-                       Không tìm thấy tin đăng phù hợp với bộ lọc hiện tại.
+                       Không tìm thấy tin đăng phù hợp với bộ lọc hiện tại. Hãy thử chọn lại điều kiện lọc hoặc bấm "Đặt Lại Dữ Liệu Chuẩn".
                    </div>
                </div>
             </div>
@@ -843,11 +843,16 @@ html_code = """<!DOCTYPE html>
                             currentSellRate: 5438
                         }
                     ],
+                    // Danh sách tin đăng phong phú, phủ khắp các tuyến Mỹ, Châu Âu, Châu Á
                     marketplaceExchangeList: [
                         { id: 301, type: 'SELL', provider: 'VinaFreighter Partner', carrier: 'Evergreen Line', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Los Angeles, CA (USLAX)', etd: '2026-10-14', slots: 3, containerType: "40'HC", price: 5200 },
                         { id: 302, type: 'SELL', provider: 'Global Logistics Corp', carrier: 'COSCO Shipping', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Long Beach, CA (USLGB)', etd: '2026-10-16', slots: 2, containerType: "40'HC", price: 5180 },
                         { id: 303, type: 'BUY', provider: 'U&I Export Co.', carrier: 'Wan Hai Lines', pol: 'Cái Mép TCIT (VNVUT)', pod: 'New York, NY/NJ (USNYC)', etd: '2026-10-18', slots: 4, containerType: "40'HC", price: 7400 },
-                        { id: 304, type: 'SELL', provider: 'TransOcean Vietnam', carrier: 'Maersk Line', pol: 'Cát Lái (VNCLI)', pod: 'Rotterdam, NLD (NLRTM)', etd: '2026-10-22', slots: 2, containerType: "40'HC", price: 8200 }
+                        { id: 304, type: 'SELL', provider: 'TransOcean Vietnam', carrier: 'Maersk Line', pol: 'Cát Lái (VNCLI)', pod: 'Rotterdam, NLD (NLRTM)', etd: '2026-10-22', slots: 2, containerType: "40'HC", price: 8200 },
+                        { id: 305, type: 'BUY', provider: 'U&I Logistics Corp', carrier: 'COSCO Shipping', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Rotterdam, NLD (NLRTM)', etd: '2026-10-25', slots: 3, containerType: "40'HC", price: 8100 },
+                        { id: 306, type: 'SELL', provider: 'Pacific Star Logistics', carrier: 'COSCO Shipping', pol: 'Hải Phòng (VNHPH)', pod: 'Incheon, KOR (KRINC)', etd: '2026-10-19', slots: 5, containerType: "40'HC", price: 2100 },
+                        { id: 307, type: 'SELL', provider: 'Delta Forwarding', carrier: 'CMA CGM', pol: 'Sài Gòn (VNSGN)', pod: 'Hamburg, DEU (DEHAM)', etd: '2026-10-28', slots: 2, containerType: "40'HC", price: 8400 },
+                        { id: 308, type: 'BUY', provider: 'Sunrise Trading', carrier: 'ONE', pol: 'Đà Nẵng (VNDAD)', pod: 'Tokyo, JPN (JPTKO)', etd: '2026-10-30', slots: 4, containerType: "40'GP", price: 2400 }
                     ],
                     monthlyStress: [
                         { m: 1, idx: 65, prem: 15 },
@@ -1066,6 +1071,7 @@ html_code = """<!DOCTYPE html>
                     this.targetMargin = 10;
                     this.sellRateOverride = null;
                     this.forecastMonth = 10;
+                    this.marketFilter = { type: 'ALL', pod: 'ALL', keyword: '' };
                     this.shipment = {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
                         consignee: 'MTA Cabinets LLC (Texas)',
