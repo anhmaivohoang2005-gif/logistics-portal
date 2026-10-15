@@ -74,7 +74,7 @@ html_code = """
                        <i class="fa-solid fa-shield-halved mr-1"></i> Dự Báo Space
                    </button>
                    <button @click="currentTab = 'peakSeason'" :class="currentTab === 'peakSeason' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition">
-                       <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mùa Cao Điểm Thuế
+                       <i class="fa-solid fa-chart-line mr-1"></i> Biến Động Cung – Cầu Space
                    </button>
                    <button @click="currentTab = 'marketplace'" :class="currentTab === 'marketplace' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition">
                        <i class="fa-solid fa-right-left mr-1"></i> Sàn Slot Marketplace
@@ -277,7 +277,7 @@ html_code = """
                </div>
             </div>
 
-            <!-- TAB 3: BÁO GIÁ & BIÊN LÃI (tính động theo tuyến / loại cont / số lượng) -->
+            <!-- TAB 3: BÁO GIÁ & BIÊN LÃI -->
             <div v-if="currentTab === 'quotation'" class="space-y-6 w-full">
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-1 pb-3 border-b border-slate-700/60">
@@ -287,7 +287,6 @@ html_code = """
                        <span class="text-xs text-slate-400">Lô hàng: <strong class="text-slate-200">{{ shipment.volume }} x {{ shipment.containerType }}</strong> | {{ shipment.pol }} → {{ shipment.pod }}</span>
                    </div>
 
-                   <!-- CƠ SỞ TÍNH GIÁ (thu gọn, bấm để xem chi tiết) -->
                    <details class="rounded-xl border border-slate-700 bg-slate-900/50 text-xs">
                        <summary class="cursor-pointer select-none p-3 flex flex-wrap items-center gap-2">
                            <span v-if="quoteBasis.isFullData" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">Dữ liệu thực</span>
@@ -314,9 +313,7 @@ html_code = """
 
                    <div class="space-y-4 w-full">
                        <div v-for="carrier in evaluatedCarriers" :key="carrier.id" class="bg-slate-900/70 border border-slate-700/80 rounded-xl p-4 space-y-4 w-full">
-
-                           <!-- Dòng 1: hãng tàu + trạng thái -->
-                           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-slate-200 border border-slate-700 text-xs">
                                         {{ carrier.code }}
@@ -344,7 +341,6 @@ html_code = """
                                 </div>
                            </div>
 
-                           <!-- Dòng 2: bảng chi phí (giá vốn) -->
                            <div class="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/60">
                                <table class="w-full text-xs">
                                    <thead>
@@ -404,7 +400,6 @@ html_code = """
                                </table>
                            </div>
 
-                           <!-- Dòng 3: 4 chỉ số chính -->
                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                                 <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
                                    <span class="text-slate-400 block mb-1">Giá bán cước ($/cont)</span>
@@ -429,7 +424,8 @@ html_code = """
                    </div>
                </div>
             </div>
-<!-- TAB 4: DỰ BÁO SPACE -->
+
+            <!-- TAB 4: DỰ BÁO SPACE -->
             <div v-if="currentTab === 'spaceForecast'" class="space-y-6 w-full">
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-5 w-full">
                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
@@ -615,7 +611,7 @@ html_code = """
                     currentTab: 'dashboard',
                     targetMargin: 10,
                     lastUpdatedTime: new Date().toLocaleTimeString(),
-                    // Giá bán cước do người dùng gõ tay (null = dùng giá tính tự động)
+                    forecastMonth: 10, // Tháng mặc định cho Tab Dự Báo Space
                     sellRateOverride: null,
                     shipment: {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
@@ -645,23 +641,15 @@ html_code = """
                         etd: 'yyyy-mm-dd',
                         eta: 'yyyy-mm-dd'
                     },
-
-                    // ====== BẢNG GIÁ NỀN (lấy từ rates.csv - tuyến R02: Cái Mép → LAX, 40'HC, Wan Hai) ======
-                    // Giá nền chỉ có THẬT cho: Cái Mép → LAX, 40'HC. Các tuyến/cont khác = điều chỉnh bằng hệ số ƯỚC TÍNH
-                    // (sửa số ở đây khi có báo giá thật của hãng tàu).
                     rateConfig: {
-                        // Phí theo CONT (R02): THC 200/200, Seal 10/10 (giá mua / giá bán)
                         perCont: { thcBuy: 200, thcSell: 200, sealBuy: 10, sealSell: 10 },
-                        // Phí theo BILL / LÔ (R02): chỉ tính 1 lần cho cả lô, không nhân số cont
                         perBill: [
                             { name: 'AMS', buy: 35, sell: 35 },
                             { name: 'Telex release', buy: 35, sell: 35 },
                             { name: 'Docs', buy: 38, sell: 38 },
                             { name: 'Handling fee (POL)', buy: 25, sell: 25 }
                         ],
-                        // Handling tại POD (R02): chỉ có ở giá mua, 90 USD / lô
                         handlingPodBuy: 90,
-                        // Hệ số cước biển theo cảng đến (so với LAX). LGB suy ra từ giá sàn slot trong app (5180/5200)
                         podFactor: {
                             'USLAX': { f: 1.00, src: 'dữ liệu R02' },
                             'USLGB': { f: 0.996, src: 'ước tính' },
@@ -669,14 +657,12 @@ html_code = """
                             'USORF': { f: 1.50, src: 'ước tính' },
                             'USSAV': { f: 1.40, src: 'ước tính' }
                         },
-                        // Phụ phí cảng đi (USD / cont 40') so với Cái Mép (feeder / chuyển tải)
                         polAddon: {
                             'VNVUT': { usd: 0, src: 'dữ liệu R02' },
                             'VNCLI': { usd: 100, src: 'ước tính' },
                             'VNSGN': { usd: 120, src: 'ước tính' },
                             'VNHPH': { usd: 300, src: 'ước tính' }
                         },
-                        // Hệ số theo loại cont (so với 40'HC): of = cước biển, thc = THC
                         contFactor: {
                             "40'HC": { of: 1.00, thc: 1.00, src: 'dữ liệu R02' },
                             "40'GP": { of: 0.95, thc: 1.00, src: 'ước tính' },
@@ -689,9 +675,6 @@ html_code = """
                             "40'FR": { of: 1.60, thc: 1.40, src: 'ước tính' }
                         }
                     },
-
-                    // Kho dữ liệu chi tiết cho từng hãng tàu (giúp đổi hãng tàu là đổi đúng chi phí cước & tên tàu)
-                    // Lưu ý: oceanFreight / currentSellRate là giá 40'HC Cái Mép → LAX (giá nền), hệ thống sẽ tự điều chỉnh theo tuyến & loại cont.
                     allCarriersData: {
                         'Wan Hai Lines': { name: 'Wan Hai Lines', code: 'WHL', vessel: 'WAN HAI A01 E012', oceanFreight: 5230, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5438, delayDays: 2 },
                         'Evergreen Line': { name: 'Evergreen Line', code: 'EMC', vessel: 'EVER GIVEN V.088E', oceanFreight: 5150, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 1 },
@@ -725,11 +708,52 @@ html_code = """
                     marketplaceList: [
                         { id: 201, provider: 'VinaFreighter Partner', carrier: 'Evergreen', route: 'Cái Mép TCIT → Los Angeles', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Los Angeles, CA (USLAX)', etd: '2026-10-14', slots: 3, price: 5200 },
                         { id: 202, provider: 'Global Logistics Corp', carrier: 'COSCO', route: 'Cái Mép TCIT → Long Beach', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Long Beach, CA (USLGB)', etd: '2026-10-16', slots: 2, price: 5180 }
+                    ],
+                    // Dữ liệu bổ sung cho Tab 4 & Tab 5
+                    monthlyStress: [
+                        { m: 1, idx: 65, prem: 15 },
+                        { m: 2, idx: 75, prem: 22 },
+                        { m: 3, idx: 45, prem: 5 },
+                        { m: 4, idx: 35, prem: 0 },
+                        { m: 5, idx: 40, prem: 5 },
+                        { m: 6, idx: 55, prem: 10 },
+                        { m: 7, idx: 68, prem: 15 },
+                        { m: 8, idx: 82, prem: 25 },
+                        { m: 9, idx: 88, prem: 30 },
+                        { m: 10, idx: 80, prem: 25 },
+                        { m: 11, idx: 72, prem: 20 },
+                        { m: 12, idx: 70, prem: 18 }
+                    ],
+                    seasons: [
+                        { key: 'shopping', name: 'Mùa Mua Sắm Cuối Năm (Black Friday / Giáng Sinh)', time: 'Tháng 8 – 11', color: 'blue',
+                          premium: '+18% đến +30%', lead: '4 – 6 tuần',
+                          trait: 'Hàng tiêu dùng, bán lẻ và thương mại điện tử dồn về Mỹ trước mùa lễ. Chủ hàng đặt chỗ sớm khiến nguồn cung tàu không đủ đáp ứng.',
+                          action: 'Chốt booking sớm, thương lượng allocation với hãng tàu, chuẩn bị ngân sách mua slot.',
+                          source: 'Xeneta, DHL; chu kỳ mùa cao điểm quý 3' },
+                        { key: 'tet', name: 'Trước Tết Nguyên Đán (Pre-Lunar New Year)', time: 'Tháng 12 – 2', color: 'amber',
+                          premium: '+10% đến +25%', lead: '4 – 5 tuần',
+                          trait: 'Nhà máy dồn hàng trước kỳ nghỉ Tết, hãng tàu tăng phụ phí mùa cao điểm (PSS), dễ thiếu vỏ container và nghẽn cảng.',
+                          action: 'Đẩy lịch xuất sớm hơn kỳ nghỉ, giữ vỏ cont từ sớm, dự phòng chi phí lưu bãi.',
+                          source: 'VASEP (PSS tăng 150 – 450 USD cuối 2020)' },
+                        { key: 'tariff', name: 'Gom Hàng "Chạy" Mốc Thuế Quan', time: 'Theo sự kiện', color: 'rose',
+                          premium: '+15% đến +40%', lead: '2 – 3 tuần',
+                          trait: 'Chủ hàng đồng loạt xuất sớm trước mốc áp thuế mới của Mỹ, cầu tăng đột ngột, hút vỏ container và chỗ tàu, khó dự báo trước.',
+                          action: 'Theo dõi tin chính sách, đặt trước mốc áp thuế, cân nhắc mua slot trên sàn.',
+                          source: 'Cục Hàng hải VN (mốc 1/8/2024); Diễn đàn Doanh nghiệp (mốc 24/7/2026)' },
+                        { key: 'route', name: 'Gián Đoạn Tuyến Tàu & Thiếu Vỏ Container Rỗng', time: 'Theo sự kiện', color: 'emerald',
+                          premium: '+10% đến +30%', lead: '3 – 4 tuần',
+                          trait: 'Khủng hoảng Biển Đỏ khiến tàu đi vòng, nguồn cung tàu thu hẹp. Hãng tàu bỏ cảng hoặc rút ngắn thời gian neo, vỏ cont rỗng bị hút về Trung Quốc.',
+                          action: 'Đặt vỏ cont sớm, chấp nhận lịch tàu linh hoạt, chuẩn bị phương án rolling.',
+                          source: 'Bertling/Xeneta; vnreview; Cục Hàng hải VN' },
+                        { key: 'fuel', name: 'Biến Động Nhiên Liệu & Quy Định Môi Trường', time: 'Quanh năm', color: 'slate',
+                          premium: 'Phụ phí BAF thay đổi', lead: 'Theo kỳ công bố của hãng',
+                          trait: 'Điều chỉnh BAF và các quy định môi trường tác động trực tiếp đến chi phí vận hành, ảnh hưởng gián tiếp đến giá slot.',
+                          action: 'Ghi rõ điều khoản điều chỉnh phụ phí trong báo giá cho khách.',
+                          source: 'Thông lệ ngành' }
                     ]
                 }
             },
             computed: {
-                // Lấy mã cảng trong ngoặc, ví dụ "Cái Mép TCIT (VNVUT)" -> "VNVUT"
                 polCode() {
                     const s = this.shipment.pol || '';
                     return s.slice(s.lastIndexOf('(') + 1, s.lastIndexOf(')'));
@@ -738,7 +762,6 @@ html_code = """
                     const s = this.shipment.pod || '';
                     return s.slice(s.lastIndexOf('(') + 1, s.lastIndexOf(')'));
                 },
-                // Các hệ số đang áp dụng cho lô hàng hiện tại
                 quoteBasis() {
                     const cfg = this.rateConfig;
                     const pod = cfg.podFactor[this.podCode] || { f: 1.0, src: 'ước tính' };
@@ -758,32 +781,27 @@ html_code = """
                     const n = Math.max(1, Number(this.shipment.volume) || 1);
 
                     return this.carriers.map(c => {
-                        // 1) Cước biển / cont: giá nền 40'HC LAX của hãng tàu -> điều chỉnh theo POD, POL, loại cont
                         const baseBuy = c.oceanFreight;
-                        const markup = c.currentSellRate / c.oceanFreight; // tỷ lệ giá bán / giá mua của hãng
+                        const markup = c.currentSellRate / c.oceanFreight;
                         const oceanBuy = Math.round((baseBuy * b.podFactor + b.polAddon) * b.contOf);
                         const oceanSellAuto = Math.round(oceanBuy * markup);
                         const oceanSell = (this.sellRateOverride !== null && this.sellRateOverride >= 0) ? this.sellRateOverride : oceanSellAuto;
 
-                        // 2) Phí theo cont (nhân số lượng cont)
                         const thcBuy = Math.round(cfg.perCont.thcBuy * b.contThc);
                         const thcSell = Math.round(cfg.perCont.thcSell * b.contThc);
                         const seal = cfg.perCont.sealBuy;
                         const sealSell = cfg.perCont.sealSell;
 
-                        // 3) Phí theo bill / lô (chỉ 1 lần)
                         const billFeesBuy = cfg.perBill.reduce((s, f) => s + f.buy, 0);
                         const billFeesSell = cfg.perBill.reduce((s, f) => s + f.sell, 0);
                         const handlingPod = cfg.handlingPodBuy;
                         const reserveFee = c.reserveFee || 0;
 
-                        // 4) Tổng chi phí & doanh thu TOÀN LÔ
                         const totalCostShipment = n * (oceanBuy + thcBuy + seal) + billFeesBuy + handlingPod + reserveFee;
                         const totalRevenue = n * (oceanSell + thcSell + sealSell) + billFeesSell;
                         const totalProfit = totalRevenue - totalCostShipment;
                         const marginPercent = totalRevenue > 0 ? parseFloat(((totalProfit / totalRevenue) * 100).toFixed(1)) : 0;
 
-                        // 5) Giá bán cước tối thiểu / cont để đạt biên lãi mục tiêu
                         const requiredRevenue = totalCostShipment / (1 - (this.targetMargin / 100));
                         const minSellRateRequired = Math.ceil((requiredRevenue - n * (thcSell + sealSell) - billFeesSell) / n);
 
@@ -807,9 +825,56 @@ html_code = """
                 },
                 filteredMarketplaceList() {
                     return this.marketplaceList.filter(s => s.pol.includes(this.shipment.pol.split(' ')[0]));
+                },
+                stressNow() {
+                    const item = this.monthlyStress.find(d => d.m === this.forecastMonth);
+                    return item ? item.idx : 50;
+                },
+                premiumNow() {
+                    const item = this.monthlyStress.find(d => d.m === this.forecastMonth);
+                    return item ? item.prem : 10;
+                },
+                levelNow() {
+                    return this.levelOf(this.stressNow);
+                },
+                supplyDemand() {
+                    const high = this.stressNow >= 70;
+                    return {
+                        supply: high ? '3 slot' : '8 slot',
+                        demand: high ? '7 slot' : '4 slot',
+                        short: high,
+                        gap: high ? 4 : 0
+                    };
+                },
+                marginImpact() {
+                    const extra = Math.round(this.stressNow * 15 * (this.shipment.volume || 1));
+                    const baseCost = this.evaluatedCarriers[0] ? this.evaluatedCarriers[0].totalCostShipment : 50000;
+                    const newCost = baseCost + extra;
+                    const rev = this.evaluatedCarriers[0] ? this.evaluatedCarriers[0].totalRevenue : 55000;
+                    const newMargin = rev > 0 ? parseFloat((((rev - newCost) / rev) * 100).toFixed(1)) : 0;
+                    const baseMargin = this.evaluatedCarriers[0] ? this.evaluatedCarriers[0].marginPercent : 10;
+                    return { base: baseMargin, newMargin, extra };
+                },
+                routeStress() {
+                    return [
+                        { code: 'USLAX', name: 'Los Angeles, CA', score: Math.min(98, this.stressNow + 5), prem: this.premiumNow + 5, level: this.levelOf(this.stressNow + 5) },
+                        { code: 'USLGB', name: 'Long Beach, CA', score: this.stressNow, prem: this.premiumNow, level: this.levelOf(this.stressNow) },
+                        { code: 'USNYC', name: 'New York, NY/NJ', score: Math.max(20, this.stressNow - 10), prem: Math.max(0, this.premiumNow - 5), level: this.levelOf(this.stressNow - 10) },
+                        { code: 'USSAV', name: 'Savannah, GA', score: Math.max(20, this.stressNow - 15), prem: Math.max(0, this.premiumNow - 8), level: this.levelOf(this.stressNow - 15) }
+                    ];
                 }
             },
             methods: {
+                levelOf(idx) {
+                    if (idx >= 70) return { label: 'Cao', text: 'text-rose-400', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30', bar: 'bg-rose-500' };
+                    if (idx >= 40) return { label: 'Trung bình', text: 'text-amber-400', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30', bar: 'bg-amber-500' };
+                    return { label: 'Thấp', text: 'text-emerald-400', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', bar: 'bg-emerald-500' };
+                },
+                seasonOfMonth(m) {
+                    if ([8, 9, 10, 11].includes(m)) return 'bg-blue-500/20 border-blue-500/40 text-blue-300';
+                    if ([12, 1, 2].includes(m)) return 'bg-amber-500/20 border-amber-500/40 text-amber-300';
+                    return 'bg-slate-800 border-slate-700 text-slate-400';
+                },
                 onSellRateInput(e) {
                     const v = parseFloat(e.target.value);
                     this.sellRateOverride = isNaN(v) ? null : v;
@@ -819,9 +884,8 @@ html_code = """
                 },
                 commitShipmentUpdate() {
                     this.shipment = JSON.parse(JSON.stringify(this.tempShipment));
-                    this.sellRateOverride = null; // đổi lô hàng -> bỏ giá bán gõ tay, tính lại từ đầu
+                    this.sellRateOverride = null;
                     
-                    // CẬP NHẬT CHÍNH XÁC HÃNG TÀU VÀ THÔNG SỐ CHI PHÍ TƯƠNG ƯNG
                     const selectedCarrierName = this.shipment.preferredCarrier || 'Wan Hai Lines';
                     const templateData = this.allCarriersData[selectedCarrierName] || this.allCarriersData['Wan Hai Lines'];
 
@@ -847,6 +911,7 @@ html_code = """
                 resetToDefault() {
                     this.targetMargin = 10;
                     this.sellRateOverride = null;
+                    this.forecastMonth = 10;
                     this.shipment = {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
                         consignee: 'MTA Cabinets LLC (Texas)',
