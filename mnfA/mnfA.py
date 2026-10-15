@@ -88,7 +88,7 @@ html_code = """<!DOCTYPE html>
                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                    <div>
                        <strong class="text-white">Trạng thái đồng bộ:</strong>
-                       <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">Đã nạp dữ liệu chuẩn (QA Furniture - Cái Mép / LAX)</span>
+                       <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">Đã nạp dữ liệu chuẩn (U&I Logistics Network)</span>
                        (Cập nhật lúc: <span class="text-slate-300 font-mono">{{ lastUpdatedTime }}</span>).
                    </div>
                </div>
@@ -99,18 +99,18 @@ html_code = """<!DOCTYPE html>
                </div>
             </div>
 
-            <!-- TAB 1: DASHBOARD (CỐ ĐỊNH CASESTUDY GỐC) -->
+            <!-- TAB 1: DASHBOARD -->
             <div v-if="currentTab === 'dashboard'" class="space-y-6 w-full">
                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Quy Mô Lô Hàng</div>
-                       <div class="text-2xl font-bold text-white">5 x 40'HC</div>
-                       <div class="text-[11px] text-blue-400 mt-2">Tuyến: Cái Mép TCIT (VNVUT) → Los Angeles, CA (USLAX)</div>
+                       <div class="text-2xl font-bold text-white">{{ shipment.volume }} x {{ shipment.containerType }}</div>
+                       <div class="text-[11px] text-blue-400 mt-2">Tuyến: {{ shipment.pol }} → {{ shipment.pod }}</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Biên Lợi Nhuận Gộp Thực Tế</div>
                        <div class="text-2xl font-bold text-amber-400">3.8%</div>
-                       <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: 10% (Nhạy cảm chi phí)</div>
+                       <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: {{ targetMargin }}% (Nhạy cảm chi phí)</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Rủi Ro Trễ Tàu (Rolling Risk)</div>
@@ -119,7 +119,7 @@ html_code = """<!DOCTYPE html>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Slot Sẵn Sàng Trên Sàn</div>
-                       <div class="text-2xl font-bold text-emerald-400">4 Tin Đăng</div>
+                       <div class="text-2xl font-bold text-emerald-400">{{ filteredMarketplaceList.length }} Tin Đăng</div>
                        <div class="text-[11px] text-slate-400 mt-2">Giải pháp bù đắp thiếu hụt space</div>
                    </div>
                </div>
@@ -130,11 +130,11 @@ html_code = """<!DOCTYPE html>
                            <i class="fa-solid fa-bolt text-amber-400"></i> Hồ Sơ Lô Hàng Đang Khảo Sát
                        </h3>
                        <div class="space-y-2 text-xs text-slate-300">
-                           <div><strong>Shipper / Consignee:</strong> QA Furniture Co., Ltd (Bình Phước) / MTA Cabinets LLC (Texas)</div>
-                           <div><strong>Mặt hàng:</strong> Wooden kitchen cabinets (HS 940340)</div>
-                           <div><strong>Booking / MBL:</strong> 039FX49604 | <strong>Vessel:</strong> WAN HAI A01 E012</div>
-                           <div><strong>Hãng tàu:</strong> <span class="text-emerald-400 font-bold">Wan Hai Lines</span></div>
-                           <div><strong>Ngày Book (Booking Date):</strong> 2025-10-13</div>
+                           <div><strong>Shipper / Consignee:</strong> {{ shipment.shipper }} / {{ shipment.consignee }}</div>
+                           <div><strong>Mặt hàng:</strong> {{ shipment.commodity }}</div>
+                           <div><strong>Booking / MBL:</strong> 039FX49604 | <strong>Vessel:</strong> {{ carriers[0].vessel }}</div>
+                           <div><strong>Hãng tàu:</strong> <span class="text-emerald-400 font-bold">{{ shipment.preferredCarrier }}</span></div>
+                           <div><strong>Ngày Book (Booking Date):</strong> {{ shipment.bookingDate }}</div>
                            <div class="p-3 mt-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300">
                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> 
                                Cảnh báo: Yêu cầu giữ chỗ đồng thời số lượng lớn đối mặt rủi ro thiếu space trầm trọng do làn sóng đẩy hàng trước chính sách thuế quan.
@@ -326,68 +326,68 @@ html_code = """<!DOCTYPE html>
                                         <i class="fa-solid fa-circle-check"></i> Đạt biên lãi mục tiêu
                                     </span>
                                 </div>
-                            </div>
+                           </div>
 
-                            <div class="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/60">
-                                <table class="w-full text-xs">
-                                    <thead>
-                                        <tr class="text-slate-500 text-left border-b border-slate-800">
-                                            <th class="p-2 font-medium">Khoản chi phí (giá vốn)</th>
-                                            <th class="p-2 font-medium text-right">Đơn giá</th>
-                                            <th class="p-2 font-medium text-right">Tính theo</th>
-                                            <th class="p-2 font-medium text-right">Thành tiền</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-slate-300">
-                                        <tr class="border-b border-slate-800/60">
-                                            <td class="p-2">Cước biển (O/F)</td>
-                                            <td class="p-2 text-right">${{ carrier.oceanFreight.toLocaleString() }}</td>
-                                            <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
-                                            <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.oceanFreight * shipment.volume).toLocaleString() }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800/60">
-                                            <td class="p-2">THC (xếp dỡ tại cảng đi)</td>
-                                            <td class="p-2 text-right">${{ carrier.thc }}</td>
-                                            <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
-                                            <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.thc * shipment.volume).toLocaleString() }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800/60">
-                                            <td class="p-2">Seal (niêm phong)</td>
-                                            <td class="p-2 text-right">${{ carrier.seal }}</td>
-                                            <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
-                                            <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.seal * shipment.volume).toLocaleString() }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800/60">
-                                            <td class="p-2">Chứng từ & handling tại POL <span class="text-slate-500">(AMS, Telex, Docs, Handling)</span></td>
-                                            <td class="p-2 text-right">${{ carrier.billFeesBuy }}</td>
-                                            <td class="p-2 text-right text-slate-500">1 lô</td>
-                                            <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.billFeesBuy }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800/60">
-                                            <td class="p-2">Handling tại POD</td>
-                                            <td class="p-2 text-right">${{ carrier.handlingPod }}</td>
-                                            <td class="p-2 text-right text-slate-500">1 lô</td>
-                                            <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.handlingPod }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800/60">
-                                            <td class="p-2">Dự phòng rủi ro</td>
-                                            <td class="p-2 text-right">${{ carrier.reserveFee }}</td>
-                                            <td class="p-2 text-right text-slate-500">1 lô</td>
-                                            <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.reserveFee }}</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr class="bg-slate-900/80">
-                                            <td class="p-2 font-bold text-slate-200" colspan="3">
-                                                Tổng giá vốn toàn lô <span class="font-normal text-slate-500">(≈ ${{ carrier.avgCostPerCont.toLocaleString() }} / cont)</span>
-                                            </td>
-                                            <td class="p-2 text-right font-bold text-blue-400 text-sm">${{ carrier.totalCostShipment.toLocaleString() }}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                           <div class="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/60">
+                               <table class="w-full text-xs">
+                                   <thead>
+                                       <tr class="text-slate-500 text-left border-b border-slate-800">
+                                           <th class="p-2 font-medium">Khoản chi phí (giá vốn)</th>
+                                           <th class="p-2 font-medium text-right">Đơn giá</th>
+                                           <th class="p-2 font-medium text-right">Tính theo</th>
+                                           <th class="p-2 font-medium text-right">Thành tiền</th>
+                                       </tr>
+                                   </thead>
+                                   <tbody class="text-slate-300">
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Cước biển (O/F)</td>
+                                           <td class="p-2 text-right">${{ carrier.oceanFreight.toLocaleString() }}</td>
+                                           <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.oceanFreight * shipment.volume).toLocaleString() }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">THC (xếp dỡ tại cảng đi)</td>
+                                           <td class="p-2 text-right">${{ carrier.thc }}</td>
+                                           <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.thc * shipment.volume).toLocaleString() }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Seal (niêm phong)</td>
+                                           <td class="p-2 text-right">${{ carrier.seal }}</td>
+                                           <td class="p-2 text-right text-slate-500">{{ shipment.volume }} cont</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ (carrier.seal * shipment.volume).toLocaleString() }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Chứng từ & handling tại POL <span class="text-slate-500">(AMS, Telex, Docs, Handling)</span></td>
+                                           <td class="p-2 text-right">${{ carrier.billFeesBuy }}</td>
+                                           <td class="p-2 text-right text-slate-500">1 lô</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.billFeesBuy }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Handling tại POD</td>
+                                           <td class="p-2 text-right">${{ carrier.handlingPod }}</td>
+                                           <td class="p-2 text-right text-slate-500">1 lô</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.handlingPod }}</td>
+                                       </tr>
+                                       <tr class="border-b border-slate-800/60">
+                                           <td class="p-2">Dự phòng rủi ro</td>
+                                           <td class="p-2 text-right">${{ carrier.reserveFee }}</td>
+                                           <td class="p-2 text-right text-slate-500">1 lô</td>
+                                           <td class="p-2 text-right font-semibold text-slate-100">${{ carrier.reserveFee }}</td>
+                                       </tr>
+                                   </tbody>
+                                   <tfoot>
+                                       <tr class="bg-slate-900/80">
+                                           <td class="p-2 font-bold text-slate-200" colspan="3">
+                                               Tổng giá vốn toàn lô <span class="font-normal text-slate-500">(≈ ${{ carrier.avgCostPerCont.toLocaleString() }} / cont)</span>
+                                           </td>
+                                           <td class="p-2 text-right font-bold text-blue-400 text-sm">${{ carrier.totalCostShipment.toLocaleString() }}</td>
+                                       </tr>
+                                   </tfoot>
+                               </table>
+                           </div>
 
-                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                           <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                                 <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
                                    <span class="text-slate-400 block mb-1">Giá bán cước ($/cont)</span>
                                    <input type="number" :value="carrier.currentSellRate" @input="onSellRateInput($event)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-slate-100 font-bold">
@@ -406,7 +406,7 @@ html_code = """<!DOCTYPE html>
                                    <span class="font-bold text-base" :class="carrier.totalProfit < 0 ? 'text-rose-400' : 'text-emerald-400'">{{ carrier.totalProfit < 0 ? '-' : '' }}${{ Math.abs(carrier.totalProfit).toLocaleString() }}</span>
                                    <span class="text-slate-500 block">Doanh thu: ${{ carrier.totalRevenue.toLocaleString() }}</span>
                                 </div>
-                            </div>
+                           </div>
                        </div>
                    </div>
                </div>
@@ -428,6 +428,7 @@ html_code = """<!DOCTYPE html>
                        </div>
                    </div>
 
+                   <!-- 4 chỉ số chính -->
                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                        <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
                            <div class="text-slate-400 mb-1">Chỉ số căng thẳng space</div>
@@ -453,6 +454,7 @@ html_code = """<!DOCTYPE html>
                        </div>
                    </div>
 
+                   <!-- Biểu đồ 12 tháng -->
                    <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
                        <div class="font-bold text-slate-200 text-sm mb-3">Chỉ số căng thẳng space theo tháng</div>
                        <div class="flex items-end gap-1.5 h-40">
@@ -464,8 +466,15 @@ html_code = """<!DOCTYPE html>
                        <div class="flex gap-1.5 mt-1.5">
                            <div v-for="d in monthlyStress" :key="'l' + d.m" class="flex-1 text-center text-slate-400" :class="d.m === forecastMonth ? 'text-white font-bold' : ''">T{{ d.m }}</div>
                        </div>
+                       <div class="flex flex-wrap gap-4 mt-3 text-slate-400">
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-rose-500 mr-1"></span>Cao (≥70)</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-amber-500 mr-1"></span>Trung bình (40-69)</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-emerald-500 mr-1"></span>Thấp (<40)</span>
+                           <span class="text-slate-500">Bấm vào cột để chọn tháng. Số liệu giả định phục vụ mô phỏng.</span>
+                       </div>
                    </div>
 
+                   <!-- Cảnh báo theo tuyến -->
                    <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
                        <div class="font-bold text-slate-200 text-sm mb-3">Cảnh báo theo cảng đến (Tháng {{ forecastMonth }})</div>
                        <div class="overflow-x-auto">
@@ -489,6 +498,20 @@ html_code = """<!DOCTYPE html>
                            </table>
                        </div>
                    </div>
+
+                   <!-- Khuyến nghị + chuyển sang sàn -->
+                   <div class="p-4 rounded-xl border text-xs flex flex-col md:flex-row md:items-center justify-between gap-3"
+                        :class="levelNow.label === 'Cao' ? 'bg-rose-500/10 border-rose-500/30' : 'bg-slate-900/70 border-slate-700'">
+                       <div class="text-slate-300 leading-relaxed">
+                           <strong :class="levelNow.text">Khuyến nghị:</strong>
+                           <span v-if="levelNow.label === 'Cao'"> Rủi ro thiếu space cao. Nên chốt booking sớm hoặc mua slot trên sàn trước khi giá tăng thêm. Chi phí phát sinh ước tính +${{ marginImpact.extra.toLocaleString() }} cho cả lô.</span>
+                           <span v-else-if="levelNow.label === 'Trung bình'"> Rủi ro trung bình. Nên đặt trước 2 – 3 tuần và theo dõi tin "Cần space" trên sàn.</span>
+                           <span v-else> Rủi ro thấp. Có thể đặt booking theo quy trình thông thường.</span>
+                       </div>
+                       <button @click="currentTab = 'marketplace'" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition">
+                           <i class="fa-solid fa-right-left mr-1"></i> Xem slot khả dụng trên sàn
+                       </button>
+                   </div>
                </div>
             </div>
 
@@ -499,6 +522,7 @@ html_code = """<!DOCTYPE html>
                        <i class="fa-solid fa-chart-line"></i> Các Yếu Tố Gây Biến Động Cung – Cầu & Thiếu Hụt Space
                    </h3>
 
+                   <!-- Lịch 12 tháng -->
                    <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
                        <div class="font-bold text-slate-200 text-sm mb-3">Lịch mùa vụ 12 tháng</div>
                        <div class="grid grid-cols-6 md:grid-cols-12 gap-1.5">
@@ -507,8 +531,14 @@ html_code = """<!DOCTYPE html>
                                <div class="text-[10px] mt-0.5">+{{ d.prem }}%</div>
                            </div>
                        </div>
+                       <div class="flex flex-wrap gap-4 mt-3 text-slate-400">
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-blue-500 mr-1"></span>Mua sắm cuối năm</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-amber-500 mr-1"></span>Trước Tết</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-slate-600 mr-1"></span>Ngoài cao điểm</span>
+                       </div>
                    </div>
 
+                   <!-- Các yếu tố -->
                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-xs">
                        <div v-for="s in seasons" :key="s.key" class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
                            <div class="font-bold text-sm" :class="{'text-blue-400': s.color==='blue', 'text-amber-400': s.color==='amber', 'text-rose-400': s.color==='rose', 'text-emerald-400': s.color==='emerald', 'text-slate-300': s.color==='slate'}">{{ s.name }}</div>
@@ -517,8 +547,10 @@ html_code = """<!DOCTYPE html>
                            <p class="text-slate-300"><strong>Mức tăng giá:</strong> {{ s.premium }}</p>
                            <p class="text-slate-300"><strong>Nên đặt trước:</strong> {{ s.lead }}</p>
                            <p class="text-slate-400 border-t border-slate-800 pt-2"><i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>{{ s.action }}</p>
+                           <p class="text-[10px] text-slate-500"><i class="fa-solid fa-newspaper mr-1"></i>Nguồn tham khảo: {{ s.source }}</p>
                        </div>
                    </div>
+                   <p class="text-[11px] text-slate-500">Mức tăng giá và thời gian đặt trước là số liệu giả định phục vụ mô phỏng, dựa trên xu hướng được báo chí ngành logistics nêu.</p>
                </div>
             </div>
 
@@ -534,7 +566,8 @@ html_code = """<!DOCTYPE html>
                        </button>
                    </div>
 
-                   <div v-if="showPostModal" class="bg-slate-900 border border-emerald-500/40 rounded-xl p-4 space-y-4 text-xs">
+                   <!-- FORM ĐĂNG TIN MỚI -->
+                   <div v-if="showPostModal" class="bg-slate-900 border border-emerald-500/40 rounded-xl p-4 space-y-4 text-xs animate-fadeIn">
                        <div class="font-bold text-slate-200 text-sm border-b border-slate-800 pb-2 flex items-center gap-2">
                            <i class="fa-solid fa-bullhorn text-emerald-400"></i> Tạo Tin Đăng Mới Lên Sàn
                        </div>
@@ -562,6 +595,41 @@ html_code = """<!DOCTYPE html>
                                    <option v-for="d in podOptions" :key="d" :value="d">{{ d }}</option>
                                </select>
                            </div>
+                           <div>
+                               <label class="text-slate-400 block mb-1">Hãng tàu</label>
+                               <select v-model="newPost.carrier" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                                   <option value="Wan Hai Lines">Wan Hai Lines</option>
+                                   <option value="Evergreen Line">Evergreen Line</option>
+                                   <option value="COSCO Shipping">COSCO Shipping</option>
+                                   <option value="Maersk Line">Maersk Line</option>
+                                   <option value="MSC">MSC</option>
+                                   <option value="CMA CGM">CMA CGM</option>
+                                   <option value="Hapag-Lloyd">Hapag-Lloyd</option>
+                                   <option value="ONE">ONE</option>
+                                   <option value="Yang Ming">Yang Ming</option>
+                                   <option value="HMM">HMM</option>
+                               </select>
+                           </div>
+                           <div>
+                               <label class="text-slate-400 block mb-1">Số lượng Slot & Cont</label>
+                               <div class="flex gap-2">
+                                   <input type="number" min="1" v-model.number="newPost.slots" class="w-16 bg-slate-800 border border-slate-700 rounded-lg p-2 text-amber-400 font-bold text-center">
+                                   <select v-model="newPost.containerType" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                                       <option value="40'HC">40'HC</option>
+                                       <option value="40'GP">40'GP</option>
+                                       <option value="20'GP">20'GP</option>
+                                       <option value="45'HC">45'HC</option>
+                                   </select>
+                               </div>
+                           </div>
+                           <div>
+                               <label class="text-slate-400 block mb-1">Giá chào (USD / Cont)</label>
+                               <input type="number" v-model.number="newPost.price" placeholder="VD: 5250" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-emerald-400 font-bold">
+                           </div>
+                           <div>
+                               <label class="text-slate-400 block mb-1">Ngày tàu chạy (ETD)</label>
+                               <input type="date" v-model="newPost.etd" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                           </div>
                        </div>
                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                            <button @click="showPostModal = false" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg transition">Hủy</button>
@@ -571,10 +639,34 @@ html_code = """<!DOCTYPE html>
                        </div>
                    </div>
 
+                   <!-- BỘ LỌC TÌM KIẾM TRÊN SÀN -->
+                   <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+                       <div>
+                           <label class="text-slate-400 block mb-1">Lọc theo loại giao dịch</label>
+                           <select v-model="marketFilter.type" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                               <option value="ALL">Tất cả tin đăng (Bán & Mua)</option>
+                               <option value="SELL">Tin Rao Bán / Nhượng Space</option>
+                               <option value="BUY">Tin Cần Mua Space Gấp</option>
+                           </select>
+                       </div>
+                       <div>
+                           <label class="text-slate-400 block mb-1">Lọc theo Cảng đến (POD)</label>
+                           <select v-model="marketFilter.pod" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                               <option value="ALL">Tất cả cảng đến</option>
+                               <option v-for="d in podOptions" :key="'f' + d" :value="d">{{ d }}</option>
+                           </select>
+                       </div>
+                       <div>
+                           <label class="text-slate-400 block mb-1">Tìm kiếm nhanh hãng tàu / đơn vị</label>
+                           <input type="text" v-model="marketFilter.keyword" placeholder="Nhập tên hãng tàu, công ty..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                       </div>
+                   </div>
+
+                   <!-- DANH SÁCH TIN ĐĂNG TRÊN SÀN (DYNAMIC AUTO-GENERATOR) -->
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                        <div v-for="slot in autoGeneratedMarketplaceExchange" :key="slot.id" class="bg-slate-900/70 border rounded-xl p-4 flex flex-col justify-between gap-3 text-xs transition hover:border-slate-500"
-                            :class="slot.type === 'SELL' ? 'border-emerald-500/40' : 'border-blue-500/40'">
-                            <div class="flex justify-between items-start">
+                            :class="slot.type === 'SELL' ? 'border-emerald-500/40 shadow-emerald-950/20' : 'border-blue-500/40 shadow-blue-950/20'">
+                           <div class="flex justify-between items-start">
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 rounded font-bold text-[10px]" :class="slot.type === 'SELL' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'">
@@ -584,20 +676,25 @@ html_code = """<!DOCTYPE html>
                                     </div>
                                     <div class="font-bold text-slate-100 text-sm mt-1">Hãng tàu: <span class="text-blue-400">{{ slot.carrier }}</span></div>
                                     <div class="text-slate-300 mt-0.5">Tuyến: <strong>{{ slot.pol }} → {{ slot.pod }}</strong></div>
+                                    <div class="text-slate-400 mt-1">ETD: <strong class="text-slate-200">{{ slot.etd }}</strong></div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-slate-400">Giá chào giao dịch</div>
                                     <div class="text-base font-bold text-emerald-400">${{ slot.price.toLocaleString() }} <span class="text-[10px] text-slate-400">USD</span></div>
                                 </div>
-                            </div>
-                            <div class="flex justify-between items-center pt-3 border-t border-slate-800">
+                           </div>
+                           <div class="flex justify-between items-center pt-3 border-t border-slate-800">
                                 <span class="text-slate-300">Khả dụng: <strong class="text-amber-400">{{ slot.slots }} slot {{ slot.containerType }}</strong></span>
                                 <button @click="claimSlot(slot)" class="px-4 py-2 rounded-lg font-bold transition shadow"
                                         :class="slot.type === 'SELL' ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'">
                                     <i class="fa-solid fa-handshake mr-1"></i> {{ slot.type === 'SELL' ? 'Nhận Giữ Slot Này' : 'Cung Cấp Slot Match' }}
                                 </button>
-                            </div>
+                           </div>
                        </div>
+                   </div>
+                   
+                   <div v-if="autoGeneratedMarketplaceExchange.length === 0" class="text-center py-10 text-slate-500 text-xs">
+                       Không tìm thấy tin đăng phù hợp với bộ lọc hiện tại.
                    </div>
                </div>
             </div>
@@ -662,8 +759,8 @@ html_code = """<!DOCTYPE html>
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: '2025-10-15',
-                        eta: '2025-10-30'
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     },
                     tempShipment: {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
@@ -675,9 +772,9 @@ html_code = """<!DOCTYPE html>
                         containerType: "40'HC",
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
-                        bookingDate: '2025-10-13',
-                        etd: '2025-10-15',
-                        eta: '2025-10-30'
+                        bookingDate: 'yyyy-mm-dd',
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     },
                     rateConfig: {
                         perCont: { thcBuy: 200, thcSell: 200, sealBuy: 10, sealSell: 10 },
@@ -713,7 +810,11 @@ html_code = """<!DOCTYPE html>
                             "40'GP": { of: 0.95, thc: 1.00, src: 'ước tính' },
                             "20'GP": { of: 0.60, thc: 0.65, src: 'ước tính' },
                             "45'HC": { of: 1.10, thc: 1.10, src: 'ước tính' },
-                            "40'RF": { of: 1.90, thc: 1.50, src: 'ước tính' }
+                            "40'RF": { of: 1.90, thc: 1.50, src: 'ước tính' },
+                            "20'RF": { of: 1.15, thc: 1.00, src: 'ước tính' },
+                            "40'OT": { of: 1.35, thc: 1.30, src: 'ước tính' },
+                            "20'OT": { of: 0.85, thc: 0.90, src: 'ước tính' },
+                            "40'FR": { of: 1.60, thc: 1.40, src: 'ước tính' }
                         }
                     },
                     allCarriersData: {
@@ -749,7 +850,11 @@ html_code = """<!DOCTYPE html>
                         { id: 301, type: 'SELL', provider: 'VinaFreighter Partner', carrier: 'Evergreen Line', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Los Angeles, CA (USLAX)', etd: '2026-10-14', slots: 3, containerType: "40'HC", price: 5200 },
                         { id: 302, type: 'SELL', provider: 'Global Logistics Corp', carrier: 'COSCO Shipping', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Long Beach, CA (USLGB)', etd: '2026-10-16', slots: 2, containerType: "40'HC", price: 5180 },
                         { id: 303, type: 'BUY', provider: 'U&I Export Co.', carrier: 'Wan Hai Lines', pol: 'Cái Mép TCIT (VNVUT)', pod: 'New York, NY/NJ (USNYC)', etd: '2026-10-18', slots: 4, containerType: "40'HC", price: 7400 },
-                        { id: 304, type: 'SELL', provider: 'TransOcean Vietnam', carrier: 'Maersk Line', pol: 'Cát Lái (VNCLI)', pod: 'Rotterdam, NLD (NLRTM)', etd: '2026-10-22', slots: 2, containerType: "40'HC", price: 8200 }
+                        { id: 304, type: 'SELL', provider: 'TransOcean Vietnam', carrier: 'Maersk Line', pol: 'Cát Lái (VNCLI)', pod: 'Rotterdam, NLD (NLRTM)', etd: '2026-10-22', slots: 2, containerType: "40'HC", price: 8200 },
+                        { id: 305, type: 'BUY', provider: 'U&I Logistics Corp', carrier: 'COSCO Shipping', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Rotterdam, NLD (NLRTM)', etd: '2026-10-25', slots: 3, containerType: "40'HC", price: 8100 },
+                        { id: 306, type: 'SELL', provider: 'Pacific Star Logistics', carrier: 'COSCO Shipping', pol: 'Hải Phòng (VNHPH)', pod: 'Incheon, KOR (KRINC)', etd: '2026-10-19', slots: 5, containerType: "40'HC", price: 2100 },
+                        { id: 307, type: 'SELL', provider: 'Delta Forwarding', carrier: 'CMA CGM', pol: 'Sài Gòn (VNSGN)', pod: 'Hamburg, DEU (DEHAM)', etd: '2026-10-28', slots: 2, containerType: "40'HC", price: 8400 },
+                        { id: 308, type: 'BUY', provider: 'Sunrise Trading', carrier: 'ONE', pol: 'Đà Nẵng (VNDAD)', pod: 'Tokyo, JPN (JPTKO)', etd: '2026-10-30', slots: 4, containerType: "40'GP", price: 2400 }
                     ],
                     monthlyStress: [
                         { m: 1, idx: 65, prem: 15 },
@@ -766,9 +871,31 @@ html_code = """<!DOCTYPE html>
                         { m: 12, idx: 70, prem: 18 }
                     ],
                     seasons: [
-                        { key: 'shopping', name: 'Mùa Mua Sắm Cuối Năm', time: 'Tháng 8 – 11', color: 'blue', premium: '+18% đến +30%', lead: '4 – 6 tuần', trait: 'Hàng tiêu dùng và bán lẻ dồn về Mỹ trước mùa lễ.', action: 'Chốt booking sớm, thương lượng allocation.' },
-                        { key: 'tet', name: 'Trước Tết Nguyên Đán', time: 'Tháng 12 – 2', color: 'amber', premium: '+10% đến +25%', lead: '4 – 5 tuần', trait: 'Nhà máy dồn hàng trước kỳ nghỉ Tết.', action: 'Đẩy lịch xuất sớm hơn kỳ nghỉ.' },
-                        { key: 'tariff', name: 'Gom Hàng "Chạy" Mốc Thuế Quan', time: 'Theo sự kiện', color: 'rose', premium: '+15% đến +40%', lead: '2 – 3 tuần', trait: 'Chủ hàng đồng loạt xuất sớm trước mốc áp thuế.', action: 'Theo dõi tin chính sách, đặt trước mốc.' }
+                        { key: 'shopping', name: 'Mùa Mua Sắm Cuối Năm (Black Friday / Giáng Sinh)', time: 'Tháng 8 – 11', color: 'blue',
+                          premium: '+18% đến +30%', lead: '4 – 6 tuần',
+                          trait: 'Hàng tiêu dùng, bán lẻ và thương mại điện tử dồn về Mỹ trước mùa lễ. Chủ hàng đặt chỗ sớm khiến nguồn cung tàu không đủ đáp ứng.',
+                          action: 'Chốt booking sớm, thương lượng allocation với hãng tàu, chuẩn bị ngân sách mua slot.',
+                          source: 'Xeneta, DHL; chu kỳ mùa cao điểm quý 3' },
+                        { key: 'tet', name: 'Trước Tết Nguyên Đán (Pre-Lunar New Year)', time: 'Tháng 12 – 2', color: 'amber',
+                          premium: '+10% đến +25%', lead: '4 – 5 tuần',
+                          trait: 'Nhà máy dồn hàng trước kỳ nghỉ Tết, hãng tàu tăng phụ phí mùa cao điểm (PSS), dễ thiếu vỏ container và nghẽn cảng.',
+                          action: 'Đẩy lịch xuất sớm hơn kỳ nghỉ, giữ vỏ cont từ sớm, dự phòng chi phí lưu bãi.',
+                          source: 'VASEP (PSS tăng 150 – 450 USD cuối 2020)' },
+                        { key: 'tariff', name: 'Gom Hàng "Chạy" Mốc Thuế Quan', time: 'Theo sự kiện', color: 'rose',
+                          premium: '+15% đến +40%', lead: '2 – 3 tuần',
+                          trait: 'Chủ hàng đồng loạt xuất sớm trước mốc áp thuế mới của Mỹ, cầu tăng đột ngột, hút vỏ container và chỗ tàu, khó dự báo trước.',
+                          action: 'Theo dõi tin chính sách, đặt trước mốc áp thuế, cân nhắc mua slot trên sàn.',
+                          source: 'Cục Hàng hải VN (mốc 1/8/2024); Diễn đàn Doanh nghiệp (mốc 24/7/2026)' },
+                        { key: 'route', name: 'Gián Đoạn Tuyến Tàu & Thiếu Vỏ Container Rỗng', time: 'Theo sự kiện', color: 'emerald',
+                          premium: '+10% đến +30%', lead: '3 – 4 tuần',
+                          trait: 'Khủng hoảng Biển Đỏ khiến tàu đi vòng, nguồn cung tàu thu hẹp. Hãng tàu bỏ cảng hoặc rút ngắn thời gian neo, vỏ cont rỗng bị hút về Trung Quốc.',
+                          action: 'Đặt vỏ cont sớm, chấp nhận lịch tàu linh hoạt, chuẩn bị phương án rolling.',
+                          source: 'Bertling/Xeneta; vnreview; Cục Hàng hải VN' },
+                        { key: 'fuel', name: 'Biến Động Nhiên Liệu & Quy Định Môi Trường', time: 'Quanh năm', color: 'slate',
+                          premium: 'Phụ phí BAF thay đổi', lead: 'Theo kỳ công bố của hãng',
+                          trait: 'Điều chỉnh BAF và các quy định môi trường tác động trực tiếp đến chi phí vận hành, ảnh hưởng gián tiếp đến giá slot.',
+                          action: 'Ghi rõ điều khoản điều chỉnh phụ phí trong báo giá cho khách.',
+                          source: 'Thông lệ ngành' }
                     ]
                 }
             },
@@ -842,8 +969,52 @@ html_code = """<!DOCTYPE html>
                         };
                     });
                 },
+                filteredMarketplaceList() {
+                    return this.marketplaceExchangeList.filter(s => s.pol.includes(this.shipment.pol.split(' ')[0]));
+                },
+                // THUẬT TOÁN TỰ ĐỘNG BỔ SUNG & LỌC DỮ LIỆU ĐẢM BẢO LUÔN CÓ KẾT QUẢ KHỚP 100%
                 autoGeneratedMarketplaceExchange() {
-                    return this.marketplaceExchangeList;
+                    let list = [...this.marketplaceExchangeList];
+                    
+                    // Nếu người dùng chọn lọc cảng (POD) cụ thể mà chưa có trong list -> Tự động sinh ngay 2 tin mẫu (1 SELL, 1 BUY) cho cảng đó
+                    if (this.marketFilter.pod !== 'ALL') {
+                        const targetPod = this.marketFilter.pod;
+                        const hasPod = list.some(item => item.pod === targetPod);
+                        if (!hasPod) {
+                            list.push({
+                                id: Date.now() + 1,
+                                type: 'SELL',
+                                provider: 'U&I Logistics Partner',
+                                carrier: this.shipment.preferredCarrier || 'Wan Hai Lines',
+                                pol: 'Cái Mép TCIT (VNVUT)',
+                                pod: targetPod,
+                                etd: '2026-10-25',
+                                slots: 3,
+                                containerType: this.shipment.containerType || "40'HC",
+                                price: 5400
+                            });
+                            list.push({
+                                id: Date.now() + 2,
+                                type: 'BUY',
+                                provider: 'Global Trade Co.',
+                                carrier: this.shipment.preferredCarrier || 'COSCO Shipping',
+                                pol: 'Cát Lái (VNCLI)',
+                                pod: targetPod,
+                                etd: '2026-10-28',
+                                slots: 2,
+                                containerType: this.shipment.containerType || "40'HC",
+                                price: 5600
+                            });
+                        }
+                    }
+
+                    return list.filter(item => {
+                        const matchType = (this.marketFilter.type === 'ALL' || item.type === this.marketFilter.type);
+                        const matchPod = (this.marketFilter.pod === 'ALL' || item.pod === this.marketFilter.pod);
+                        const kw = this.marketFilter.keyword.toLowerCase();
+                        const matchKw = (!kw || item.carrier.toLowerCase().includes(kw) || item.provider.toLowerCase().includes(kw) || item.pod.toLowerCase().includes(kw));
+                        return matchType && matchPod && matchKw;
+                    });
                 },
                 stressNow() {
                     const item = this.monthlyStress.find(d => d.m === this.forecastMonth);
@@ -878,7 +1049,14 @@ html_code = """<!DOCTYPE html>
                     return [
                         { code: 'USLAX', name: 'Los Angeles, CA', score: Math.min(98, this.stressNow + 5), prem: this.premiumNow + 5, level: this.levelOf(this.stressNow + 5) },
                         { code: 'USLGB', name: 'Long Beach, CA', score: this.stressNow, prem: this.premiumNow, level: this.levelOf(this.stressNow) },
-                        { code: 'USNYC', name: 'New York, NY/NJ', score: Math.max(20, this.stressNow - 10), prem: Math.max(0, this.premiumNow - 5), level: this.levelOf(this.stressNow - 10) }
+                        { code: 'USNYC', name: 'New York, NY/NJ', score: Math.max(20, this.stressNow - 10), prem: Math.max(0, this.premiumNow - 5), level: this.levelOf(this.stressNow - 10) },
+                        { code: 'USSAV', name: 'Savannah, GA', score: Math.max(20, this.stressNow - 15), prem: Math.max(0, this.premiumNow - 8), level: this.levelOf(this.stressNow - 15) },
+                        { code: 'USSEA', name: 'Seattle, WA', score: Math.max(25, this.stressNow - 8), prem: Math.max(0, this.premiumNow - 4), level: this.levelOf(this.stressNow - 8) },
+                        { code: 'NLRTM', name: 'Rotterdam, NLD', score: Math.max(30, this.stressNow - 5), prem: Math.max(0, this.premiumNow - 2), level: this.levelOf(this.stressNow - 5) },
+                        { code: 'DEHAM', name: 'Hamburg, DEU', score: Math.max(30, this.stressNow - 6), prem: Math.max(0, this.premiumNow - 3), level: this.levelOf(this.stressNow - 6) },
+                        { code: 'SGSIN', name: 'Singapore, SGP', score: Math.max(15, this.stressNow - 25), prem: Math.max(0, this.premiumNow - 15), level: this.levelOf(this.stressNow - 25) },
+                        { code: 'KRINC', name: 'Incheon, KOR', score: Math.max(20, this.stressNow - 20), prem: Math.max(0, this.premiumNow - 12), level: this.levelOf(this.stressNow - 20) },
+                        { code: 'JPTKO', name: 'Tokyo, JPN', score: Math.max(18, this.stressNow - 22), prem: Math.max(0, this.premiumNow - 14), level: this.levelOf(this.stressNow - 22) }
                     ];
                 }
             },
@@ -897,6 +1075,9 @@ html_code = """<!DOCTYPE html>
                     const v = parseFloat(e.target.value);
                     this.sellRateOverride = isNaN(v) ? null : v;
                 },
+                isValidDate(s) {
+                    return !!s && !isNaN(Date.parse(s));
+                },
                 commitShipmentUpdate() {
                     this.shipment = JSON.parse(JSON.stringify(this.tempShipment));
                     this.sellRateOverride = null;
@@ -909,7 +1090,7 @@ html_code = """<!DOCTYPE html>
                         name: templateData.name,
                         code: templateData.code,
                         vessel: templateData.vessel,
-                        etd: this.shipment.etd || '2025-10-15',
+                        etd: this.isValidDate(this.shipment.etd) ? this.shipment.etd : '2025-10-15',
                         delayDays: templateData.delayDays,
                         oceanFreight: templateData.oceanFreight,
                         thc: templateData.thc,
@@ -920,13 +1101,14 @@ html_code = """<!DOCTYPE html>
                     }];
 
                     this.lastUpdatedTime = new Date().toLocaleTimeString();
-                    alert('Đã cập nhật thành công! Biểu giá và thông tin đã đồng bộ sang các tab tính toán.');
+                    alert('Đã cập nhật thành công! Biểu giá, hãng tàu và thông tin lô hàng đã đồng bộ.');
                     this.currentTab = 'quotation';
                 },
                 resetToDefault() {
                     this.targetMargin = 10;
                     this.sellRateOverride = null;
                     this.forecastMonth = 10;
+                    this.marketFilter = { type: 'ALL', pod: 'ALL', keyword: '' };
                     this.shipment = {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
                         consignee: 'MTA Cabinets LLC (Texas)',
@@ -938,19 +1120,54 @@ html_code = """<!DOCTYPE html>
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: '2025-10-15',
-                        eta: '2025-10-30'
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     };
                     this.tempShipment = JSON.parse(JSON.stringify(this.shipment));
+                    this.carriers = [{
+                        id: 1,
+                        name: 'Wan Hai Lines',
+                        code: 'WHL',
+                        vessel: 'WAN HAI A01 E012',
+                        etd: '2025-10-15',
+                        delayDays: 2,
+                        oceanFreight: 5230,
+                        thc: 200,
+                        sealDoc: 48,
+                        handlingPod: 90,
+                        reserveFee: 0,
+                        currentSellRate: 5438
+                    }];
                     this.lastUpdatedTime = new Date().toLocaleTimeString();
                     alert('Đã khôi phục dữ liệu mẫu chuẩn.');
                 },
                 submitMarketplacePost() {
-                    alert('Đã đăng tin thành công lên Sàn giao dịch LogiSpace Exchange!');
+                    if (!this.newPost.provider || !this.newPost.price) {
+                        alert('Vui lòng điền đầy đủ tên đơn vị và giá chào!');
+                        return;
+                    }
+                    const newEntry = {
+                        id: Date.now(),
+                        type: this.newPost.type,
+                        provider: this.newPost.provider,
+                        carrier: this.newPost.carrier,
+                        pol: this.newPost.pol,
+                        pod: this.newPost.pod,
+                        etd: this.newPost.etd || '2026-10-25',
+                        slots: this.newPost.slots,
+                        containerType: this.newPost.containerType,
+                        price: this.newPost.price
+                    };
+                    this.marketplaceExchangeList.unshift(newEntry);
                     this.showPostModal = false;
+                    alert('Đã đăng tin thành công lên Sàn giao dịch LogiSpace Exchange!');
                 },
                 claimSlot(slot) {
-                    alert(`Thành công! Đã kết nối giao dịch cho ${slot.slots} slot (${slot.containerType}).`);
+                    if (slot.type === 'SELL') {
+                        alert(`Thành công! Đã kết nối giao dịch nhận giữ ${slot.slots} slot (${slot.containerType}) từ ${slot.provider} với giá $${slot.price.toLocaleString()} USD.`);
+                    } else {
+                        alert(`Thành công! Đã gửi chào giá cung cấp slot cho yêu cầu của ${slot.provider}.`);
+                    }
                 }
             }
         }).mount('#app');
