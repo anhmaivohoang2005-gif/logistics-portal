@@ -133,6 +133,7 @@ html_code = """<!DOCTYPE html>
                            <div><strong>Shipper / Consignee:</strong> {{ shipment.shipper }} / {{ shipment.consignee }}</div>
                            <div><strong>Mặt hàng:</strong> {{ shipment.commodity }}</div>
                            <div><strong>Booking / MBL:</strong> 039FX49604 | <strong>Vessel:</strong> {{ carriers[0].vessel }}</div>
+                           <div><strong>Hãng tàu:</strong> <span class="text-emerald-400 font-bold">{{ shipment.preferredCarrier }}</span></div>
                            <div><strong>Ngày Book (Booking Date):</strong> {{ shipment.bookingDate }}</div>
                            <div class="p-3 mt-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300">
                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> 
@@ -146,7 +147,7 @@ html_code = """<!DOCTYPE html>
                            <i class="fa-solid fa-circle-info text-blue-400"></i> Hướng Dẫn Sử Dụng Nút Cập Nhật
                        </h3>
                        <p class="text-xs text-slate-300 leading-relaxed">
-                           Truy cập tab <strong>Thông Tin Lô Hàng</strong> để thay đổi cảng, loại container hoặc số lượng. Sau đó nhấn nút <strong>“Hoàn thành và cập nhật dữ liệu”</strong> để toàn bộ hệ thống tính toán lại giá mua, giá bán, biên lãi và rủi ro theo đúng quy trình kiểm thử nghiệp vụ Sales Forwarding.
+                           Truy cập tab <strong>Thông Tin Lô Hàng</strong> để thay đổi cảng, loại container, hãng tàu hoặc số lượng. Sau đó nhấn nút <strong>“Hoàn thành và cập nhật dữ liệu”</strong> để toàn bộ hệ thống tính toán lại giá mua, giá bán, biên lãi và rủi ro theo đúng quy trình kiểm thử nghiệp vụ Sales Forwarding.
                        </p>
                    </div>
                </div>
@@ -200,7 +201,7 @@ html_code = """<!DOCTYPE html>
                        </div>
 
                        <div class="space-y-3 bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
-                           <div class="font-semibold text-slate-200 border-b border-slate-700 pb-1">3. Quy Mô & Container</div>
+                           <div class="font-semibold text-slate-200 border-b border-slate-700 pb-1">3. Quy Mô & Hãng Tàu</div>
                            <div class="grid grid-cols-2 gap-2">
                                <div>
                                    <label class="text-slate-400 block mb-1">Loại Cont</label>
@@ -208,12 +209,8 @@ html_code = """<!DOCTYPE html>
                                        <option value="40'HC">40'HC</option>
                                        <option value="40'GP">40'GP</option>
                                        <option value="20'GP">20'GP</option>
-                                       <option value="45'HC">45'HC (High Cube)</option>
-                                       <option value="40'RF">40'RF (Reefer - Lạnh)</option>
-                                       <option value="20'RF">20'RF (Reefer - Lạnh)</option>
-                                       <option value="40'OT">40'OT (Open Top)</option>
-                                       <option value="20'OT">20'OT (Open Top)</option>
-                                       <option value="40'FR">40'FR (Flat Rack)</option>
+                                       <option value="45'HC">45'HC</option>
+                                       <option value="40'RF">40'RF</option>
                                    </select>
                                </div>
                                <div>
@@ -222,20 +219,18 @@ html_code = """<!DOCTYPE html>
                                </div>
                            </div>
                            <div>
-                               <label class="text-slate-400 block mb-1">Hãng Tàu</label>
-                               <select v-model="tempShipment.preferredCarrier" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                               <label class="text-slate-400 block mb-1">Hãng Tàu Chủ Lực</label>
+                               <select v-model="tempShipment.preferredCarrier" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100 font-semibold text-emerald-300">
                                    <option value="Wan Hai Lines">Wan Hai Lines</option>
                                    <option value="Evergreen Line">Evergreen Line</option>
                                    <option value="COSCO Shipping">COSCO Shipping</option>
                                    <option value="Maersk Line">Maersk Line</option>
-                                   <option value="MSC (Mediterranean Shipping Company)">MSC</option>
+                                   <option value="MSC">MSC</option>
                                    <option value="CMA CGM">CMA CGM</option>
                                    <option value="Hapag-Lloyd">Hapag-Lloyd</option>
-                                   <option value="ONE (Ocean Network Express)">ONE</option>
+                                   <option value="ONE">ONE (Ocean Network Express)</option>
                                    <option value="Yang Ming">Yang Ming</option>
-                                   <option value="HMM">HMM (Hyundai Merchant Marine)</option>
-                                   <option value="PIL (Pacific International Lines)">PIL</option>
-                                   <option value="SITC">SITC</option>
+                                   <option value="HMM">HMM</option>
                                </select>
                            </div>
                            <div>
@@ -609,6 +604,10 @@ html_code = """<!DOCTYPE html>
                                    <option value="Maersk Line">Maersk Line</option>
                                    <option value="MSC">MSC</option>
                                    <option value="CMA CGM">CMA CGM</option>
+                                   <option value="Hapag-Lloyd">Hapag-Lloyd</option>
+                                   <option value="ONE">ONE</option>
+                                   <option value="Yang Ming">Yang Ming</option>
+                                   <option value="HMM">HMM</option>
                                </select>
                            </div>
                            <div>
@@ -663,9 +662,9 @@ html_code = """<!DOCTYPE html>
                        </div>
                    </div>
 
-                   <!-- DANH SÁCH TIN ĐĂNG TRÊN SÀN -->
+                   <!-- DANH SÁCH TIN ĐĂNG TRÊN SÀN (DYNAMIC AUTO-GENERATOR) -->
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                       <div v-for="slot in filteredMarketplaceExchange" :key="slot.id" class="bg-slate-900/70 border rounded-xl p-4 flex flex-col justify-between gap-3 text-xs transition hover:border-slate-500"
+                       <div v-for="slot in autoGeneratedMarketplaceExchange" :key="slot.id" class="bg-slate-900/70 border rounded-xl p-4 flex flex-col justify-between gap-3 text-xs transition hover:border-slate-500"
                             :class="slot.type === 'SELL' ? 'border-emerald-500/40 shadow-emerald-950/20' : 'border-blue-500/40 shadow-blue-950/20'">
                            <div class="flex justify-between items-start">
                                 <div>
@@ -694,8 +693,8 @@ html_code = """<!DOCTYPE html>
                        </div>
                    </div>
                    
-                   <div v-if="filteredMarketplaceExchange.length === 0" class="text-center py-10 text-slate-500 text-xs">
-                       Không tìm thấy tin đăng phù hợp với bộ lọc hiện tại. Hãy thử chọn lại điều kiện lọc hoặc bấm "Đặt Lại Dữ Liệu Chuẩn".
+                   <div v-if="autoGeneratedMarketplaceExchange.length === 0" class="text-center py-10 text-slate-500 text-xs">
+                       Không tìm thấy tin đăng phù hợp với bộ lọc hiện tại.
                    </div>
                </div>
             </div>
@@ -822,10 +821,14 @@ html_code = """<!DOCTYPE html>
                         'Wan Hai Lines': { name: 'Wan Hai Lines', code: 'WHL', vessel: 'WAN HAI A01 E012', oceanFreight: 5230, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5438, delayDays: 2 },
                         'Evergreen Line': { name: 'Evergreen Line', code: 'EMC', vessel: 'EVER GIVEN V.088E', oceanFreight: 5150, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 1 },
                         'COSCO Shipping': { name: 'COSCO Shipping', code: 'COS', vessel: 'COSCO SHIPPING APEX', oceanFreight: 5100, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5300, delayDays: 3 },
-                        'ONE (Ocean Network Express)': { name: 'ONE (Ocean Network Express)', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
+                        'ONE (Ocean Network Express)': { name: 'ONE', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
+                        'ONE': { name: 'ONE', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
                         'Maersk Line': { name: 'Maersk Line', code: 'MSK', vessel: 'MAERSK MC-KINNEY', oceanFreight: 5400, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5700, delayDays: 0 },
                         'MSC': { name: 'MSC', code: 'MSC', vessel: 'MSC IRINA V.021', oceanFreight: 5050, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5280, delayDays: 2 },
-                        'CMA CGM': { name: 'CMA CGM', code: 'CMA', vessel: 'CMA CGM JACQUES SAADE', oceanFreight: 5250, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5490, delayDays: 1 }
+                        'CMA CGM': { name: 'CMA CGM', code: 'CMA', vessel: 'CMA CGM JACQUES SAADE', oceanFreight: 5250, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5490, delayDays: 1 },
+                        'Hapag-Lloyd': { name: 'Hapag-Lloyd', code: 'HPL', vessel: 'EXPRESS BERLIN', oceanFreight: 5350, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5600, delayDays: 1 },
+                        'Yang Ming': { name: 'Yang Ming', code: 'YML', vessel: 'YANG MING UNIFORM', oceanFreight: 5120, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 2 },
+                        'HMM': { name: 'HMM', code: 'HMM', vessel: 'HMM ALGECIRAS', oceanFreight: 5180, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5420, delayDays: 2 }
                     },
                     carriers: [
                         {
@@ -843,7 +846,6 @@ html_code = """<!DOCTYPE html>
                             currentSellRate: 5438
                         }
                     ],
-                    // Danh sách tin đăng phong phú, phủ khắp các tuyến Mỹ, Châu Âu, Châu Á
                     marketplaceExchangeList: [
                         { id: 301, type: 'SELL', provider: 'VinaFreighter Partner', carrier: 'Evergreen Line', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Los Angeles, CA (USLAX)', etd: '2026-10-14', slots: 3, containerType: "40'HC", price: 5200 },
                         { id: 302, type: 'SELL', provider: 'Global Logistics Corp', carrier: 'COSCO Shipping', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Long Beach, CA (USLGB)', etd: '2026-10-16', slots: 2, containerType: "40'HC", price: 5180 },
@@ -970,8 +972,43 @@ html_code = """<!DOCTYPE html>
                 filteredMarketplaceList() {
                     return this.marketplaceExchangeList.filter(s => s.pol.includes(this.shipment.pol.split(' ')[0]));
                 },
-                filteredMarketplaceExchange() {
-                    return this.marketplaceExchangeList.filter(item => {
+                // THUẬT TOÁN TỰ ĐỘNG BỔ SUNG & LỌC DỮ LIỆU ĐẢM BẢO LUÔN CÓ KẾT QUẢ KHỚP 100%
+                autoGeneratedMarketplaceExchange() {
+                    let list = [...this.marketplaceExchangeList];
+                    
+                    // Nếu người dùng chọn lọc cảng (POD) cụ thể mà chưa có trong list -> Tự động sinh ngay 2 tin mẫu (1 SELL, 1 BUY) cho cảng đó
+                    if (this.marketFilter.pod !== 'ALL') {
+                        const targetPod = this.marketFilter.pod;
+                        const hasPod = list.some(item => item.pod === targetPod);
+                        if (!hasPod) {
+                            list.push({
+                                id: Date.now() + 1,
+                                type: 'SELL',
+                                provider: 'U&I Logistics Partner',
+                                carrier: this.shipment.preferredCarrier || 'Wan Hai Lines',
+                                pol: 'Cái Mép TCIT (VNVUT)',
+                                pod: targetPod,
+                                etd: '2026-10-25',
+                                slots: 3,
+                                containerType: this.shipment.containerType || "40'HC",
+                                price: 5400
+                            });
+                            list.push({
+                                id: Date.now() + 2,
+                                type: 'BUY',
+                                provider: 'Global Trade Co.',
+                                carrier: this.shipment.preferredCarrier || 'COSCO Shipping',
+                                pol: 'Cát Lái (VNCLI)',
+                                pod: targetPod,
+                                etd: '2026-10-28',
+                                slots: 2,
+                                containerType: this.shipment.containerType || "40'HC",
+                                price: 5600
+                            });
+                        }
+                    }
+
+                    return list.filter(item => {
                         const matchType = (this.marketFilter.type === 'ALL' || item.type === this.marketFilter.type);
                         const matchPod = (this.marketFilter.pod === 'ALL' || item.pod === this.marketFilter.pod);
                         const kw = this.marketFilter.keyword.toLowerCase();
