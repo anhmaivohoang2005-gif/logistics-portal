@@ -429,311 +429,145 @@ html_code = """
                    </div>
                </div>
             </div>
-
-            ```html
 <!-- TAB 4: DỰ BÁO SPACE -->
-<div v-if="currentTab === 'spaceForecast'" class="space-y-6 w-full">
-    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-5 w-full">
-
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
-            <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved"></i>
-                Dự Báo Rủi Ro Thiếu Space Theo Mùa Vụ
-            </h3>
-
-            <div class="flex items-center gap-2 text-xs flex-wrap">
-                <span class="text-slate-400">
-                    Tuyến:
-                    <strong class="text-slate-200">
-                        {{ shipment.pol }} → {{ shipment.pod }}
-                    </strong>
-                </span>
-
-                <span class="text-slate-400 ml-2">Tháng xuất hàng:</span>
-
-                <select
-                    v-model.number="forecastMonth"
-                    class="bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-slate-100"
-                >
-                    <option v-for="i in 12" :key="i" :value="i">
-                        Tháng {{ i }}
-                    </option>
-                </select>
-            </div>
-        </div>
-
-        <!-- 4 chỉ số chính -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-
-            <!-- Chỉ số căng thẳng space -->
-            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
-                <div class="text-slate-400 mb-1">
-                    Chỉ số căng thẳng space
-                </div>
-
-                <div class="text-2xl font-bold" :class="levelNow.text">
-                    {{ stressNow }}
-                    <span class="text-sm text-slate-500">/100</span>
-                </div>
-
-                <span
-                    class="inline-block mt-2 px-2 py-0.5 rounded border font-semibold"
-                    :class="levelNow.badge"
-                >
-                    Rủi ro {{ levelNow.label }}
-                </span>
-            </div>
-
-            <!-- Giá slot dự kiến tăng -->
-            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
-                <div class="text-slate-400 mb-1">
-                    Giá slot dự kiến tăng
-                </div>
-
-                <div class="text-2xl font-bold text-amber-400">
-                    +{{ premiumNow }}%
-                </div>
-
-                <div class="text-[11px] text-slate-500 mt-2">
-                    So với giá nền ngoài mùa cao điểm
-                </div>
-            </div>
-
-            <!-- Cung cầu -->
-            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
-                <div class="text-slate-400 mb-1">
-                    Cung / Cầu trên sàn
-                </div>
-
-                <div
-                    class="text-2xl font-bold"
-                    :class="supplyDemand.short ? 'text-rose-400' : 'text-emerald-400'"
-                >
-                    {{ supplyDemand.supply }} / {{ supplyDemand.demand }}
-                </div>
-
-                <div class="text-[11px] text-slate-500 mt-2">
-                    {{
-                        supplyDemand.short
-                            ? 'Thiếu ' + supplyDemand.gap + ' slot (cầu lớn hơn cung)'
-                            : 'Cung đang đủ cầu'
-                    }}
-                </div>
-            </div>
-
-            <!-- Biên lợi nhuận -->
-            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
-                <div class="text-slate-400 mb-1">
-                    Biên lãi nếu mua slot giá cao
-                </div>
-
-                <div
-                    class="text-2xl font-bold"
-                    :class="
-                        marginImpact.newMargin < 0
-                            ? 'text-rose-400'
-                            : (
-                                marginImpact.newMargin < targetMargin
-                                    ? 'text-amber-400'
-                                    : 'text-emerald-400'
-                            )
-                    "
-                >
-                    {{ marginImpact.newMargin }}%
-                </div>
-
-                <div class="text-[11px] text-slate-500 mt-2">
-                    Hiện tại {{ marginImpact.base }}%
-                    · phát sinh +${{ marginImpact.extra.toLocaleString() }}
-                </div>
-            </div>
-        </div>
-
-        <!-- Biểu đồ 12 tháng -->
-        <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
-            <div class="font-bold text-slate-200 text-sm mb-3">
-                Chỉ số căng thẳng space theo tháng
-            </div>
-
-            <div class="flex items-end gap-1.5 h-40">
-                <div
-                    v-for="d in monthlyStress"
-                    :key="d.m"
-                    class="flex-1 flex flex-col items-center justify-end h-full cursor-pointer"
-                    @click="forecastMonth = d.m"
-                    :title="'Tháng ' + d.m + ': chỉ số ' + d.idx"
-                >
-                    <span class="text-[10px] text-slate-400 mb-1">
-                        {{ d.idx }}
-                    </span>
-
-                    <div
-                        class="w-full rounded-t transition-all"
-                        :class="[
-                            levelOf(d.idx).bar,
-                            d.m === forecastMonth
-                                ? 'ring-2 ring-white'
-                                : 'opacity-70'
-                        ]"
-                        :style="{ height: d.idx + '%' }"
-                    ></div>
-                </div>
-            </div>
-
-            <div class="flex gap-1.5 mt-1.5">
-                <div
-                    v-for="d in monthlyStress"
-                    :key="'l' + d.m"
-                    class="flex-1 text-center text-slate-400"
-                    :class="d.m === forecastMonth ? 'text-white font-bold' : ''"
-                >
-                    T{{ d.m }}
-                </div>
-            </div>
-
-            <div class="flex flex-wrap gap-4 mt-3 text-slate-400">
-                <span>
-                    <span class="inline-block w-2.5 h-2.5 rounded bg-rose-500 mr-1"></span>
-                    Cao (≥70)
-                </span>
-
-                <span>
-                    <span class="inline-block w-2.5 h-2.5 rounded bg-amber-500 mr-1"></span>
-                    Trung bình (40–69)
-                </span>
-
-                <span>
-                    <span class="inline-block w-2.5 h-2.5 rounded bg-emerald-500 mr-1"></span>
-                    Thấp (&lt;40)
-                </span>
-
-                <span class="text-slate-500">
-                    Bấm vào cột để chọn tháng. Số liệu giả định phục vụ mô phỏng.
-                </span>
-            </div>
-        </div>
-
-        <!-- Cảnh báo theo cảng đến -->
-        <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
-            <div class="font-bold text-slate-200 text-sm mb-3">
-                Cảnh báo theo cảng đến (Tháng {{ forecastMonth }})
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="text-slate-500 text-left border-b border-slate-800">
-                            <th class="p-2 font-medium">Cảng đến</th>
-                            <th class="p-2 font-medium text-right">Chỉ số</th>
-                            <th class="p-2 font-medium text-right">Giá tăng dự kiến</th>
-                            <th class="p-2 font-medium text-right">Mức rủi ro</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="text-slate-300">
-                        <tr
-                            v-for="r in routeStress"
-                            :key="r.code"
-                            class="border-b border-slate-800/60"
-                            :class="r.code === podCode ? 'bg-blue-500/10' : ''"
-                        >
-                            <td class="p-2">
-                                {{ r.name }}
-
-                                <span
-                                    v-if="r.code === podCode"
-                                    class="text-blue-400"
-                                >
-                                    (lô hàng này)
-                                </span>
-                            </td>
-
-                            <td class="p-2 text-right font-semibold">
-                                {{ r.score }}
-                            </td>
-
-                            <td class="p-2 text-right">
-                                +{{ r.prem }}%
-                            </td>
-
-                            <td class="p-2 text-right">
-                                <span
-                                    class="px-2 py-0.5 rounded border font-semibold"
-                                    :class="r.level.badge"
-                                >
-                                    {{ r.level.label }}
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Khuyến nghị -->
-        <div
-            class="p-4 rounded-xl border text-xs flex flex-col md:flex-row md:items-center justify-between gap-3"
-            :class="
-                levelNow.label === 'Cao'
-                    ? 'bg-rose-500/10 border-rose-500/30'
-                    : 'bg-slate-900/70 border-slate-700'
-            "
-        >
-            <div class="text-slate-300 leading-relaxed">
-                <strong :class="levelNow.text">Khuyến nghị:</strong>
-
-                <span v-if="levelNow.label === 'Cao'">
-                    Rủi ro thiếu space cao. Nên chốt booking sớm hoặc mua slot
-                    trên sàn trước khi giá tăng thêm. Chi phí phát sinh ước tính
-                    +${{ marginImpact.extra.toLocaleString() }} cho cả lô.
-                </span>
-
-                <span v-else-if="levelNow.label === 'Trung bình'">
-                    Rủi ro trung bình. Nên đặt trước 2–3 tuần và theo dõi tin
-                    "Cần space" trên sàn.
-                </span>
-
-                <span v-else>
-                    Rủi ro thấp. Có thể đặt booking theo quy trình thông thường.
-                </span>
-            </div>
-
-            <button
-                @click="currentTab = 'marketplace'"
-                class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition"
-            >
-                <i class="fa-solid fa-right-left mr-1"></i>
-                Xem slot khả dụng trên sàn
-            </button>
-        </div>
-
-    </div>
-</div>
-
-            <!-- TAB 5: MÙA CAO ĐIỂM -->
-            <div v-if="currentTab === 'peakSeason'" class="space-y-6 w-full">
-               <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
-                   <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                       <i class="fa-solid fa-calendar-days"></i> Nhận Diện Các Chu Kỳ Mùa Cao Điểm & Biến Động Thị Trường
-                   </h3>
-                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                       <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
-                           <div class="font-bold text-blue-400 text-sm">1. Mùa Mua Sắm Cuối Năm (Black Friday / Giáng Sinh)</div>
-                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 8 – Tháng 11.</p>
-                           <p class="text-slate-300"><strong>Đặc điểm:</strong> Giá cước tăng cao do nhu cầu nhập hàng bán lẻ và thương mại điện tử bùng nổ.</p>
-                       </div>
-                       <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
-                           <div class="font-bold text-amber-400 text-sm">2. Mùa Trước Tết Nguyên Đán (Pre-Lunar New Year)</div>
-                           <p class="text-slate-300"><strong>Thời gian:</strong> Tháng 12 – Tháng 2.</p>
-                           <p class="text-slate-300"><strong>Đặc điểm:</strong> Đỉnh điểm dồn hàng trước kỳ nghỉ Tết tại châu Á, nguy cơ thiếu vỏ cont và nghẽn cảng.</p>
-                       </div>
-                       <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
-                           <div class="font-bold text-emerald-400 text-sm">3. Biến động chi phí nhiên liệu & Chính sách</div>
-                           <p class="text-slate-300"><strong>Thời gian quanh năm:</strong></p>
-                           <p class="text-slate-300"><strong>Đặc điểm:</strong> Điều chỉnh phụ phí nhiên liệu (BAF) và các quy định môi trường quốc tế tác động trực tiếp đến chi phí vận hành.</p>
+            <div v-if="currentTab === 'spaceForecast'" class="space-y-6 w-full">
+               <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-5 w-full">
+                   <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
+                       <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                           <i class="fa-solid fa-shield-halved"></i> Dự Báo Rủi Ro Thiếu Space Theo Mùa Vụ
+                       </h3>
+                       <div class="flex items-center gap-2 text-xs">
+                           <span class="text-slate-400">Tuyến: <strong class="text-slate-200">{{ shipment.pol }} → {{ shipment.pod }}</strong></span>
+                           <span class="text-slate-400 ml-2">Tháng xuất hàng:</span>
+                           <select v-model.number="forecastMonth" class="bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-slate-100">
+                               <option v-for="i in 12" :key="i" :value="i">Tháng {{ i }}</option>
+                           </select>
                        </div>
                    </div>
+
+                   <!-- 4 chỉ số chính -->
+                   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                       <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
+                           <div class="text-slate-400 mb-1">Chỉ số căng thẳng space</div>
+                           <div class="text-2xl font-bold" :class="levelNow.text">{{ stressNow }}<span class="text-sm text-slate-500">/100</span></div>
+                           <span class="inline-block mt-2 px-2 py-0.5 rounded border font-semibold" :class="levelNow.badge">Rủi ro {{ levelNow.label }}</span>
+                       </div>
+                       <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
+                           <div class="text-slate-400 mb-1">Giá slot dự kiến tăng</div>
+                           <div class="text-2xl font-bold text-amber-400">+{{ premiumNow }}%</div>
+                           <div class="text-[11px] text-slate-500 mt-2">So với giá nền ngoài mùa cao điểm</div>
+                       </div>
+                       <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
+                           <div class="text-slate-400 mb-1">Cung / Cầu trên sàn</div>
+                           <div class="text-2xl font-bold" :class="supplyDemand.short ? 'text-rose-400' : 'text-emerald-400'">{{ supplyDemand.supply }} / {{ supplyDemand.demand }}</div>
+                           <div class="text-[11px] text-slate-500 mt-2">
+                               {{ supplyDemand.short ? 'Thiếu ' + supplyDemand.gap + ' slot (cầu lớn hơn cung)' : 'Cung đang đủ cầu' }}
+                           </div>
+                       </div>
+                       <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4">
+                           <div class="text-slate-400 mb-1">Biên lãi nếu mua slot giá cao</div>
+                           <div class="text-2xl font-bold" :class="marginImpact.newMargin < 0 ? 'text-rose-400' : (marginImpact.newMargin < targetMargin ? 'text-amber-400' : 'text-emerald-400')">{{ marginImpact.newMargin }}%</div>
+                           <div class="text-[11px] text-slate-500 mt-2">Hiện tại {{ marginImpact.base }}% · phát sinh +${{ marginImpact.extra.toLocaleString() }}</div>
+                       </div>
+                   </div>
+
+                   <!-- Biểu đồ 12 tháng -->
+                   <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
+                       <div class="font-bold text-slate-200 text-sm mb-3">Chỉ số căng thẳng space theo tháng</div>
+                       <div class="flex items-end gap-1.5 h-40">
+                           <div v-for="d in monthlyStress" :key="d.m" class="flex-1 flex flex-col items-center justify-end h-full cursor-pointer" @click="forecastMonth = d.m">
+                               <span class="text-[10px] text-slate-400 mb-1">{{ d.idx }}</span>
+                               <div class="w-full rounded-t transition-all" :class="[levelOf(d.idx).bar, d.m === forecastMonth ? 'ring-2 ring-white' : 'opacity-70']" :style="{ height: d.idx + '%' }"></div>
+                           </div>
+                       </div>
+                       <div class="flex gap-1.5 mt-1.5">
+                           <div v-for="d in monthlyStress" :key="'l' + d.m" class="flex-1 text-center text-slate-400" :class="d.m === forecastMonth ? 'text-white font-bold' : ''">T{{ d.m }}</div>
+                       </div>
+                       <div class="flex flex-wrap gap-4 mt-3 text-slate-400">
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-rose-500 mr-1"></span>Cao (≥70)</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-amber-500 mr-1"></span>Trung bình (40-69)</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-emerald-500 mr-1"></span>Thấp (<40)</span>
+                           <span class="text-slate-500">Bấm vào cột để chọn tháng. Số liệu giả định phục vụ mô phỏng.</span>
+                       </div>
+                   </div>
+
+                   <!-- Cảnh báo theo tuyến -->
+                   <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
+                       <div class="font-bold text-slate-200 text-sm mb-3">Cảnh báo theo cảng đến (Tháng {{ forecastMonth }})</div>
+                       <div class="overflow-x-auto">
+                           <table class="w-full">
+                               <thead>
+                                   <tr class="text-slate-500 text-left border-b border-slate-800">
+                                       <th class="p-2 font-medium">Cảng đến</th>
+                                       <th class="p-2 font-medium text-right">Chỉ số</th>
+                                       <th class="p-2 font-medium text-right">Giá tăng dự kiến</th>
+                                       <th class="p-2 font-medium text-right">Mức rủi ro</th>
+                                   </tr>
+                               </thead>
+                               <tbody class="text-slate-300">
+                                   <tr v-for="r in routeStress" :key="r.code" class="border-b border-slate-800/60" :class="r.code === podCode ? 'bg-blue-500/10' : ''">
+                                       <td class="p-2">{{ r.name }} <span v-if="r.code === podCode" class="text-blue-400">(lô hàng này)</span></td>
+                                       <td class="p-2 text-right font-semibold">{{ r.score }}</td>
+                                       <td class="p-2 text-right">+{{ r.prem }}%</td>
+                                       <td class="p-2 text-right"><span class="px-2 py-0.5 rounded border font-semibold" :class="r.level.badge">{{ r.level.label }}</span></td>
+                                   </tr>
+                               </tbody>
+                           </table>
+                       </div>
+                   </div>
+
+                   <!-- Khuyến nghị + chuyển sang sàn -->
+                   <div class="p-4 rounded-xl border text-xs flex flex-col md:flex-row md:items-center justify-between gap-3"
+                        :class="levelNow.label === 'Cao' ? 'bg-rose-500/10 border-rose-500/30' : 'bg-slate-900/70 border-slate-700'">
+                       <div class="text-slate-300 leading-relaxed">
+                           <strong :class="levelNow.text">Khuyến nghị:</strong>
+                           <span v-if="levelNow.label === 'Cao'"> Rủi ro thiếu space cao. Nên chốt booking sớm hoặc mua slot trên sàn trước khi giá tăng thêm. Chi phí phát sinh ước tính +${{ marginImpact.extra.toLocaleString() }} cho cả lô.</span>
+                           <span v-else-if="levelNow.label === 'Trung bình'"> Rủi ro trung bình. Nên đặt trước 2 – 3 tuần và theo dõi tin "Cần space" trên sàn.</span>
+                           <span v-else> Rủi ro thấp. Có thể đặt booking theo quy trình thông thường.</span>
+                       </div>
+                       <button @click="currentTab = 'marketplace'" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition">
+                           <i class="fa-solid fa-right-left mr-1"></i> Xem slot khả dụng trên sàn
+                       </button>
+                   </div>
+               </div>
+            </div>
+
+            <!-- TAB 5: BIẾN ĐỘNG CUNG – CẦU SPACE -->
+            <div v-if="currentTab === 'peakSeason'" class="space-y-6 w-full">
+               <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-5 w-full">
+                   <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                       <i class="fa-solid fa-chart-line"></i> Các Yếu Tố Gây Biến Động Cung – Cầu & Thiếu Hụt Space
+                   </h3>
+
+                   <!-- Lịch 12 tháng -->
+                   <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 text-xs">
+                       <div class="font-bold text-slate-200 text-sm mb-3">Lịch mùa vụ 12 tháng</div>
+                       <div class="grid grid-cols-6 md:grid-cols-12 gap-1.5">
+                           <div v-for="d in monthlyStress" :key="d.m" class="rounded-lg border p-2 text-center" :class="seasonOfMonth(d.m)">
+                               <div class="font-bold">T{{ d.m }}</div>
+                               <div class="text-[10px] mt-0.5">+{{ d.prem }}%</div>
+                           </div>
+                       </div>
+                       <div class="flex flex-wrap gap-4 mt-3 text-slate-400">
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-blue-500 mr-1"></span>Mua sắm cuối năm</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-amber-500 mr-1"></span>Trước Tết</span>
+                           <span><span class="inline-block w-2.5 h-2.5 rounded bg-slate-600 mr-1"></span>Ngoài cao điểm</span>
+                       </div>
+                   </div>
+
+                   <!-- Các yếu tố -->
+                   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-xs">
+                       <div v-for="s in seasons" :key="s.key" class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-2">
+                           <div class="font-bold text-sm" :class="{'text-blue-400': s.color==='blue', 'text-amber-400': s.color==='amber', 'text-rose-400': s.color==='rose', 'text-emerald-400': s.color==='emerald', 'text-slate-300': s.color==='slate'}">{{ s.name }}</div>
+                           <p class="text-slate-300"><strong>Thời gian:</strong> {{ s.time }}</p>
+                           <p class="text-slate-300"><strong>Đặc điểm:</strong> {{ s.trait }}</p>
+                           <p class="text-slate-300"><strong>Mức tăng giá:</strong> {{ s.premium }}</p>
+                           <p class="text-slate-300"><strong>Nên đặt trước:</strong> {{ s.lead }}</p>
+                           <p class="text-slate-400 border-t border-slate-800 pt-2"><i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>{{ s.action }}</p>
+                           <p class="text-[10px] text-slate-500"><i class="fa-solid fa-newspaper mr-1"></i>Nguồn tham khảo: {{ s.source }}</p>
+                       </div>
+                   </div>
+                   <p class="text-[11px] text-slate-500">Mức tăng giá và thời gian đặt trước là số liệu giả định phục vụ mô phỏng, dựa trên xu hướng được báo chí ngành logistics nêu.</p>
                </div>
             </div>
 
