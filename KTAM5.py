@@ -28,8 +28,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-html_code = """
-<!DOCTYPE html>
+html_code = """<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -844,7 +843,6 @@ html_code = """
                             currentSellRate: 5438
                         }
                     ],
-                    // Danh sách sàn giao dịch ban đầu (Đầy đủ cả tin Bán nhượng & tin Cần mua)
                     marketplaceExchangeList: [
                         { id: 301, type: 'SELL', provider: 'VinaFreighter Partner', carrier: 'Evergreen Line', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Los Angeles, CA (USLAX)', etd: '2026-10-14', slots: 3, containerType: "40'HC", price: 5200 },
                         { id: 302, type: 'SELL', provider: 'Global Logistics Corp', carrier: 'COSCO Shipping', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Long Beach, CA (USLGB)', etd: '2026-10-16', slots: 2, containerType: "40'HC", price: 5180 },
@@ -876,4 +874,262 @@ html_code = """
                           trait: 'Nhà máy dồn hàng trước kỳ nghỉ Tết, hãng tàu tăng phụ phí mùa cao điểm (PSS), dễ thiếu vỏ container và nghẽn cảng.',
                           action: 'Đẩy lịch xuất sớm hơn kỳ nghỉ, giữ vỏ cont từ sớm, dự phòng chi phí lưu bãi.',
                           source: 'VASEP (PSS tăng 150 – 450 USD cuối 2020)' },
-                        { key: 'tariff', name: 'Gom Hàng "
+                        { key: 'tariff', name: 'Gom Hàng "Chạy" Mốc Thuế Quan', time: 'Theo sự kiện', color: 'rose',
+                          premium: '+15% đến +40%', lead: '2 – 3 tuần',
+                          trait: 'Chủ hàng đồng loạt xuất sớm trước mốc áp thuế mới của Mỹ, cầu tăng đột ngột, hút vỏ container và chỗ tàu, khó dự báo trước.',
+                          action: 'Theo dõi tin chính sách, đặt trước mốc áp thuế, cân nhắc mua slot trên sàn.',
+                          source: 'Cục Hàng hải VN (mốc 1/8/2024); Diễn đàn Doanh nghiệp (mốc 24/7/2026)' },
+                        { key: 'route', name: 'Gián Đoạn Tuyến Tàu & Thiếu Vỏ Container Rỗng', time: 'Theo sự kiện', color: 'emerald',
+                          premium: '+10% đến +30%', lead: '3 – 4 tuần',
+                          trait: 'Khủng hoảng Biển Đỏ khiến tàu đi vòng, nguồn cung tàu thu hẹp. Hãng tàu bỏ cảng hoặc rút ngắn thời gian neo, vỏ cont rỗng bị hút về Trung Quốc.',
+                          action: 'Đặt vỏ cont sớm, chấp nhận lịch tàu linh hoạt, chuẩn bị phương án rolling.',
+                          source: 'Bertling/Xeneta; vnreview; Cục Hàng hải VN' },
+                        { key: 'fuel', name: 'Biến Động Nhiên Liệu & Quy Định Môi Trường', time: 'Quanh năm', color: 'slate',
+                          premium: 'Phụ phí BAF thay đổi', lead: 'Theo kỳ công bố của hãng',
+                          trait: 'Điều chỉnh BAF và các quy định môi trường tác động trực tiếp đến chi phí vận hành, ảnh hưởng gián tiếp đến giá slot.',
+                          action: 'Ghi rõ điều khoản điều chỉnh phụ phí trong báo giá cho khách.',
+                          source: 'Thông lệ ngành' }
+                    ]
+                }
+            },
+            computed: {
+                polCode() {
+                    const s = this.shipment.pol || '';
+                    return s.slice(s.lastIndexOf('(') + 1, s.lastIndexOf(')'));
+                },
+                podCode() {
+                    const s = this.shipment.pod || '';
+                    return s.slice(s.lastIndexOf('(') + 1, s.lastIndexOf(')'));
+                },
+                quoteBasis() {
+                    const cfg = this.rateConfig;
+                    const pod = cfg.podFactor[this.podCode] || { f: 1.0, src: 'ước tính' };
+                    const pol = cfg.polAddon[this.polCode] || { usd: 0, src: 'ước tính' };
+                    const cont = cfg.contFactor[this.shipment.containerType] || { of: 1.0, thc: 1.0, src: 'ước tính' };
+                    const isFullData = pod.src.indexOf('dữ liệu') === 0 && pol.src.indexOf('dữ liệu') === 0 && cont.src.indexOf('dữ liệu') === 0;
+                    return {
+                        podFactor: pod.f, podSrc: pod.src,
+                        polAddon: pol.usd, polSrc: pol.src,
+                        contOf: cont.of, contThc: cont.thc, contSrc: cont.src,
+                        isFullData
+                    };
+                },
+                evaluatedCarriers() {
+                    const cfg = this.rateConfig;
+                    const b = this.quoteBasis;
+                    const n = Math.max(1, Number(this.shipment.volume) || 1);
+
+                    return this.carriers.map(c => {
+                        const baseBuy = c.oceanFreight;
+                        const markup = c.currentSellRate / c.oceanFreight;
+                        const oceanBuy = Math.round((baseBuy * b.podFactor + b.polAddon) * b.contOf);
+                        const oceanSellAuto = Math.round(oceanBuy * markup);
+                        const oceanSell = (this.sellRateOverride !== null && this.sellRateOverride >= 0) ? this.sellRateOverride : oceanSellAuto;
+
+                        const thcBuy = Math.round(cfg.perCont.thcBuy * b.contThc);
+                        const thcSell = Math.round(cfg.perCont.thcSell * b.contThc);
+                        const seal = cfg.perCont.sealBuy;
+                        const sealSell = cfg.perCont.sealSell;
+
+                        const billFeesBuy = cfg.perBill.reduce((s, f) => s + f.buy, 0);
+                        const billFeesSell = cfg.perBill.reduce((s, f) => s + f.sell, 0);
+                        const handlingPod = cfg.handlingPodBuy;
+                        const reserveFee = c.reserveFee || 0;
+
+                        const totalCostShipment = n * (oceanBuy + thcBuy + seal) + billFeesBuy + handlingPod + reserveFee;
+                        const totalRevenue = n * (oceanSell + thcSell + sealSell) + billFeesSell;
+                        const totalProfit = totalRevenue - totalCostShipment;
+                        const marginPercent = totalRevenue > 0 ? parseFloat(((totalProfit / totalRevenue) * 100).toFixed(1)) : 0;
+
+                        const requiredRevenue = totalCostShipment / (1 - (this.targetMargin / 100));
+                        const minSellRateRequired = Math.ceil((requiredRevenue - n * (thcSell + sealSell) - billFeesSell) / n);
+
+                        return {
+                            ...c,
+                            oceanFreight: oceanBuy,
+                            thc: thcBuy,
+                            seal,
+                            billFeesBuy,
+                            handlingPod,
+                            reserveFee,
+                            currentSellRate: oceanSell,
+                            totalCostShipment,
+                            avgCostPerCont: Math.round(totalCostShipment / n),
+                            totalRevenue,
+                            minSellRateRequired,
+                            totalProfit,
+                            marginPercent
+                        };
+                    });
+                },
+                filteredMarketplaceList() {
+                    return this.marketplaceExchangeList.filter(s => s.pol.includes(this.shipment.pol.split(' ')[0]));
+                },
+                filteredMarketplaceExchange() {
+                    return this.marketplaceExchangeList.filter(item => {
+                        const matchType = (this.marketFilter.type === 'ALL' || item.type === this.marketFilter.type);
+                        const matchPod = (this.marketFilter.pod === 'ALL' || item.pod === this.marketFilter.pod);
+                        const kw = this.marketFilter.keyword.toLowerCase();
+                        const matchKw = (!kw || item.carrier.toLowerCase().includes(kw) || item.provider.toLowerCase().includes(kw) || item.pod.toLowerCase().includes(kw));
+                        return matchType && matchPod && matchKw;
+                    });
+                },
+                stressNow() {
+                    const item = this.monthlyStress.find(d => d.m === this.forecastMonth);
+                    return item ? item.idx : 50;
+                },
+                premiumNow() {
+                    const item = this.monthlyStress.find(d => d.m === this.forecastMonth);
+                    return item ? item.prem : 10;
+                },
+                levelNow() {
+                    return this.levelOf(this.stressNow);
+                },
+                supplyDemand() {
+                    const high = this.stressNow >= 70;
+                    return {
+                        supply: high ? '3 slot' : '8 slot',
+                        demand: high ? '7 slot' : '4 slot',
+                        short: high,
+                        gap: high ? 4 : 0
+                    };
+                },
+                marginImpact() {
+                    const extra = Math.round(this.stressNow * 15 * (this.shipment.volume || 1));
+                    const baseCost = this.evaluatedCarriers[0] ? this.evaluatedCarriers[0].totalCostShipment : 50000;
+                    const newCost = baseCost + extra;
+                    const rev = this.evaluatedCarriers[0] ? this.evaluatedCarriers[0].totalRevenue : 55000;
+                    const newMargin = rev > 0 ? parseFloat((((rev - newCost) / rev) * 100).toFixed(1)) : 0;
+                    const baseMargin = this.evaluatedCarriers[0] ? this.evaluatedCarriers[0].marginPercent : 10;
+                    return { base: baseMargin, newMargin, extra };
+                },
+                dynamicRouteStress() {
+                    return [
+                        { code: 'USLAX', name: 'Los Angeles, CA', score: Math.min(98, this.stressNow + 5), prem: this.premiumNow + 5, level: this.levelOf(this.stressNow + 5) },
+                        { code: 'USLGB', name: 'Long Beach, CA', score: this.stressNow, prem: this.premiumNow, level: this.levelOf(this.stressNow) },
+                        { code: 'USNYC', name: 'New York, NY/NJ', score: Math.max(20, this.stressNow - 10), prem: Math.max(0, this.premiumNow - 5), level: this.levelOf(this.stressNow - 10) },
+                        { code: 'USSAV', name: 'Savannah, GA', score: Math.max(20, this.stressNow - 15), prem: Math.max(0, this.premiumNow - 8), level: this.levelOf(this.stressNow - 15) },
+                        { code: 'USSEA', name: 'Seattle, WA', score: Math.max(25, this.stressNow - 8), prem: Math.max(0, this.premiumNow - 4), level: this.levelOf(this.stressNow - 8) },
+                        { code: 'NLRTM', name: 'Rotterdam, NLD', score: Math.max(30, this.stressNow - 5), prem: Math.max(0, this.premiumNow - 2), level: this.levelOf(this.stressNow - 5) },
+                        { code: 'DEHAM', name: 'Hamburg, DEU', score: Math.max(30, this.stressNow - 6), prem: Math.max(0, this.premiumNow - 3), level: this.levelOf(this.stressNow - 6) },
+                        { code: 'SGSIN', name: 'Singapore, SGP', score: Math.max(15, this.stressNow - 25), prem: Math.max(0, this.premiumNow - 15), level: this.levelOf(this.stressNow - 25) },
+                        { code: 'KRINC', name: 'Incheon, KOR', score: Math.max(20, this.stressNow - 20), prem: Math.max(0, this.premiumNow - 12), level: this.levelOf(this.stressNow - 20) },
+                        { code: 'JPTKO', name: 'Tokyo, JPN', score: Math.max(18, this.stressNow - 22), prem: Math.max(0, this.premiumNow - 14), level: this.levelOf(this.stressNow - 22) }
+                    ];
+                }
+            },
+            methods: {
+                levelOf(idx) {
+                    if (idx >= 70) return { label: 'Cao', text: 'text-rose-400', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30', bar: 'bg-rose-500' };
+                    if (idx >= 40) return { label: 'Trung bình', text: 'text-amber-400', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30', bar: 'bg-amber-500' };
+                    return { label: 'Thấp', text: 'text-emerald-400', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', bar: 'bg-emerald-500' };
+                },
+                seasonOfMonth(m) {
+                    if ([8, 9, 10, 11].includes(m)) return 'bg-blue-500/20 border-blue-500/40 text-blue-300';
+                    if ([12, 1, 2].includes(m)) return 'bg-amber-500/20 border-amber-500/40 text-amber-300';
+                    return 'bg-slate-800 border-slate-700 text-slate-400';
+                },
+                onSellRateInput(e) {
+                    const v = parseFloat(e.target.value);
+                    this.sellRateOverride = isNaN(v) ? null : v;
+                },
+                isValidDate(s) {
+                    return !!s && !isNaN(Date.parse(s));
+                },
+                commitShipmentUpdate() {
+                    this.shipment = JSON.parse(JSON.stringify(this.tempShipment));
+                    this.sellRateOverride = null;
+                    
+                    const selectedCarrierName = this.shipment.preferredCarrier || 'Wan Hai Lines';
+                    const templateData = this.allCarriersData[selectedCarrierName] || this.allCarriersData['Wan Hai Lines'];
+
+                    this.carriers = [{
+                        id: 1,
+                        name: templateData.name,
+                        code: templateData.code,
+                        vessel: templateData.vessel,
+                        etd: this.isValidDate(this.shipment.etd) ? this.shipment.etd : '2025-10-15',
+                        delayDays: templateData.delayDays,
+                        oceanFreight: templateData.oceanFreight,
+                        thc: templateData.thc,
+                        sealDoc: templateData.sealDoc,
+                        handlingPod: templateData.handlingPod,
+                        reserveFee: templateData.reserveFee,
+                        currentSellRate: templateData.currentSellRate
+                    }];
+
+                    this.lastUpdatedTime = new Date().toLocaleTimeString();
+                    alert('Đã cập nhật thành công! Biểu giá, hãng tàu và thông tin lô hàng đã đồng bộ.');
+                    this.currentTab = 'quotation';
+                },
+                resetToDefault() {
+                    this.targetMargin = 10;
+                    this.sellRateOverride = null;
+                    this.forecastMonth = 10;
+                    this.shipment = {
+                        shipper: 'QA Furniture Co., Ltd (Bình Phước)',
+                        consignee: 'MTA Cabinets LLC (Texas)',
+                        salesPerson: 'Nhập tên',
+                        pol: 'Cái Mép TCIT (VNVUT)',
+                        pod: 'Los Angeles, CA (USLAX)',
+                        commodity: 'Wooden kitchen cabinets (HS 940340)',
+                        containerType: "40'HC",
+                        volume: 5,
+                        preferredCarrier: 'Wan Hai Lines',
+                        bookingDate: '2025-10-13',
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
+                    };
+                    this.tempShipment = JSON.parse(JSON.stringify(this.shipment));
+                    this.carriers = [{
+                        id: 1,
+                        name: 'Wan Hai Lines',
+                        code: 'WHL',
+                        vessel: 'WAN HAI A01 E012',
+                        etd: '2025-10-15',
+                        delayDays: 2,
+                        oceanFreight: 5230,
+                        thc: 200,
+                        sealDoc: 48,
+                        handlingPod: 90,
+                        reserveFee: 0,
+                        currentSellRate: 5438
+                    }];
+                    this.lastUpdatedTime = new Date().toLocaleTimeString();
+                    alert('Đã khôi phục dữ liệu mẫu chuẩn.');
+                },
+                submitMarketplacePost() {
+                    if (!this.newPost.provider || !this.newPost.price) {
+                        alert('Vui lòng điền đầy đủ tên đơn vị và giá chào!');
+                        return;
+                    }
+                    const newEntry = {
+                        id: Date.now(),
+                        type: this.newPost.type,
+                        provider: this.newPost.provider,
+                        carrier: this.newPost.carrier,
+                        pol: this.newPost.pol,
+                        pod: this.newPost.pod,
+                        etd: this.newPost.etd || '2026-10-25',
+                        slots: this.newPost.slots,
+                        containerType: this.newPost.containerType,
+                        price: this.newPost.price
+                    };
+                    this.marketplaceExchangeList.unshift(newEntry);
+                    this.showPostModal = false;
+                    alert('Đã đăng tin thành công lên Sàn giao dịch LogiSpace Exchange!');
+                },
+                claimSlot(slot) {
+                    if (slot.type === 'SELL') {
+                        alert(`Thành công! Đã kết nối giao dịch nhận giữ ${slot.slots} slot (${slot.containerType}) từ ${slot.provider} với giá $${slot.price.toLocaleString()} USD.`);
+                    } else {
+                        alert(`Thành công! Đã gửi chào giá cung cấp slot cho yêu cầu của ${slot.provider}.`);
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>"""
+
+st.components.v1.html(html_code, height=980, scrolling=True)
