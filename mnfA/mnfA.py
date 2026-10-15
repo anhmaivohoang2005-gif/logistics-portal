@@ -99,23 +99,23 @@ html_code = """<!DOCTYPE html>
                </div>
             </div>
 
-            <!-- TAB 1: DASHBOARD -->
+            <!-- TAB 1: DASHBOARD (CASESTUDY GỐC - CỐ ĐỊNH) -->
             <div v-if="currentTab === 'dashboard'" class="space-y-6 w-full">
                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Quy Mô Lô Hàng</div>
-                       <div class="text-2xl font-bold text-white">{{ shipment.volume }} x {{ shipment.containerType }}</div>
-                       <div class="text-[11px] text-blue-400 mt-2">Tuyến: {{ shipment.pol }} → {{ shipment.pod }}</div>
+                       <div class="text-2xl font-bold text-white">{{ baseCase.volume }} x {{ baseCase.containerType }}</div>
+                       <div class="text-[11px] text-blue-400 mt-2">Tuyến: {{ baseCase.pol }} → {{ baseCase.pod }}</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Biên Lợi Nhuận Gộp Thực Tế</div>
                        <div class="text-2xl font-bold text-amber-400">3.8%</div>
-                       <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: {{ targetMargin }}% (Nhạy cảm chi phí)</div>
+                       <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: {{ baseCase.targetMargin }}% (Nhạy cảm chi phí)</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Rủi Ro Trễ Tàu (Rolling Risk)</div>
                        <div class="text-2xl font-bold text-rose-400">+2 Ngày Chậm</div>
-                       <div class="text-[11px] text-slate-400 mt-2">ETD kế hoạch: 2025-10-15</div>
+                       <div class="text-[11px] text-slate-400 mt-2">ETD kế hoạch: {{ baseCase.etd }}</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Slot Sẵn Sàng Trên Sàn</div>
@@ -130,11 +130,11 @@ html_code = """<!DOCTYPE html>
                            <i class="fa-solid fa-bolt text-amber-400"></i> Hồ Sơ Lô Hàng Đang Khảo Sát
                        </h3>
                        <div class="space-y-2 text-xs text-slate-300">
-                           <div><strong>Shipper / Consignee:</strong> {{ shipment.shipper }} / {{ shipment.consignee }}</div>
-                           <div><strong>Mặt hàng:</strong> {{ shipment.commodity }}</div>
-                           <div><strong>Booking / MBL:</strong> 039FX49604 | <strong>Vessel:</strong> {{ carriers[0].vessel }}</div>
-                           <div><strong>Hãng tàu:</strong> <span class="text-emerald-400 font-bold">{{ shipment.preferredCarrier }}</span></div>
-                           <div><strong>Ngày Book (Booking Date):</strong> {{ shipment.bookingDate }}</div>
+                           <div><strong>Shipper / Consignee:</strong> {{ baseCase.shipper }} / {{ baseCase.consignee }}</div>
+                           <div><strong>Mặt hàng:</strong> {{ baseCase.commodity }}</div>
+                           <div><strong>Booking / MBL:</strong> 039FX49604 | <strong>Vessel:</strong> {{ baseCase.vessel }}</div>
+                           <div><strong>Hãng tàu:</strong> <span class="text-emerald-400 font-bold">{{ baseCase.preferredCarrier }}</span></div>
+                           <div><strong>Ngày Book (Booking Date):</strong> {{ baseCase.bookingDate }}</div>
                            <div class="p-3 mt-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300">
                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> 
                                Cảnh báo: Yêu cầu giữ chỗ đồng thời số lượng lớn đối mặt rủi ro thiếu space trầm trọng do làn sóng đẩy hàng trước chính sách thuế quan.
@@ -748,6 +748,21 @@ html_code = """<!DOCTYPE html>
                         'Incheon, KOR (KRINC)',
                         'Tokyo, JPN (JPTKO)'
                     ],
+                    // CASESTUDY GỐC - chỉ dùng cho Dashboard, KHÔNG bị thay đổi khi cập nhật lô hàng
+                    baseCase: {
+                        shipper: 'QA Furniture Co., Ltd (Bình Phước)',
+                        consignee: 'MTA Cabinets LLC (Texas)',
+                        commodity: 'Wooden kitchen cabinets (HS 940340)',
+                        pol: 'Cái Mép TCIT (VNVUT)',
+                        pod: 'Los Angeles, CA (USLAX)',
+                        containerType: "40'HC",
+                        volume: 5,
+                        preferredCarrier: 'Wan Hai Lines',
+                        vessel: 'WAN HAI A01 E012',
+                        bookingDate: '2025-10-13',
+                        etd: '2025-10-15',
+                        targetMargin: 10
+                    },
                     shipment: {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
                         consignee: 'MTA Cabinets LLC (Texas)',
@@ -970,7 +985,7 @@ html_code = """<!DOCTYPE html>
                     });
                 },
                 filteredMarketplaceList() {
-                    return this.marketplaceExchangeList.filter(s => s.pol.includes(this.shipment.pol.split(' ')[0]));
+                    return this.marketplaceExchangeList.filter(s => s.pol.includes(this.baseCase.pol.split(' ')[0]));
                 },
                 // THUẬT TOÁN TỰ ĐỘNG BỔ SUNG & LỌC DỮ LIỆU ĐẢM BẢO LUÔN CÓ KẾT QUẢ KHỚP 100%
                 autoGeneratedMarketplaceExchange() {
