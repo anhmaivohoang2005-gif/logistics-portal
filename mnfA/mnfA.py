@@ -88,7 +88,7 @@ html_code = """<!DOCTYPE html>
                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                    <div>
                        <strong class="text-white">Trạng thái đồng bộ:</strong>
-                       <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">Đã nạp dữ liệu chuẩn (QA Furniture - Cái Mép / LAX)</span>
+                       <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">Đã nạp dữ liệu chuẩn (U&I Logistics Network)</span>
                        (Cập nhật lúc: <span class="text-slate-300 font-mono">{{ lastUpdatedTime }}</span>).
                    </div>
                </div>
@@ -99,7 +99,7 @@ html_code = """<!DOCTYPE html>
                </div>
             </div>
 
-            <!-- TAB 1: DASHBOARD -->
+            <!-- TAB 1: DASHBOARD (CHUẨN GỐC & ĐỒNG BỘ TRỰC TIẾP) -->
             <div v-if="currentTab === 'dashboard'" class="space-y-6 w-full">
                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
@@ -109,13 +109,13 @@ html_code = """<!DOCTYPE html>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Biên Lợi Nhuận Gộp Thực Tế</div>
-                       <div class="text-2xl font-bold text-amber-400">3.8%</div>
+                       <div class="text-2xl font-bold text-amber-400">{{ evaluatedCarriers[0].marginPercent }}%</div>
                        <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: {{ targetMargin }}% (Nhạy cảm chi phí)</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Rủi Ro Trễ Tàu (Rolling Risk)</div>
-                       <div class="text-2xl font-bold text-rose-400">+2 Ngày Chậm</div>
-                       <div class="text-[11px] text-slate-400 mt-2">ETD kế hoạch: 2025-10-15</div>
+                       <div class="text-2xl font-bold text-rose-400">+{{ carriers[0].delayDays }} Ngày Chậm</div>
+                       <div class="text-[11px] text-slate-400 mt-2">ETD kế hoạch: {{ shipment.etd !== 'yyyy-mm-dd' ? shipment.etd : '2025-10-15' }}</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Slot Sẵn Sàng Trên Sàn</div>
@@ -133,6 +133,7 @@ html_code = """<!DOCTYPE html>
                            <div><strong>Shipper / Consignee:</strong> {{ shipment.shipper }} / {{ shipment.consignee }}</div>
                            <div><strong>Mặt hàng:</strong> {{ shipment.commodity }}</div>
                            <div><strong>Booking / MBL:</strong> 039FX49604 | <strong>Vessel:</strong> {{ carriers[0].vessel }}</div>
+                           <div><strong>Hãng tàu:</strong> <span class="text-emerald-400 font-bold">{{ shipment.preferredCarrier }}</span></div>
                            <div><strong>Ngày Book (Booking Date):</strong> {{ shipment.bookingDate }}</div>
                            <div class="p-3 mt-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300">
                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> 
@@ -146,7 +147,7 @@ html_code = """<!DOCTYPE html>
                            <i class="fa-solid fa-circle-info text-blue-400"></i> Hướng Dẫn Sử Dụng Nút Cập Nhật
                        </h3>
                        <p class="text-xs text-slate-300 leading-relaxed">
-                           Truy cập tab <strong>Thông Tin Lô Hàng</strong> để thay đổi cảng, loại container hoặc số lượng. Sau đó nhấn nút <strong>“Hoàn thành và cập nhật dữ liệu”</strong> để toàn bộ hệ thống tính toán lại giá mua, giá bán, biên lãi và rủi ro theo đúng quy trình kiểm thử nghiệp vụ Sales Forwarding.
+                           Truy cập tab <strong>Thông Tin Lô Hàng</strong> để thay đổi cảng, loại container, hãng tàu hoặc số lượng. Sau đó nhấn nút <strong>“Hoàn thành và cập nhật dữ liệu”</strong> để toàn bộ hệ thống tính toán lại giá mua, giá bán, biên lãi và rủi ro theo đúng quy trình kiểm thử nghiệp vụ Sales Forwarding.
                        </p>
                    </div>
                </div>
@@ -200,7 +201,7 @@ html_code = """<!DOCTYPE html>
                        </div>
 
                        <div class="space-y-3 bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
-                           <div class="font-semibold text-slate-200 border-b border-slate-700 pb-1">3. Quy Mô & Container</div>
+                           <div class="font-semibold text-slate-200 border-b border-slate-700 pb-1">3. Quy Mô & Hãng Tàu</div>
                            <div class="grid grid-cols-2 gap-2">
                                <div>
                                    <label class="text-slate-400 block mb-1">Loại Cont</label>
@@ -208,12 +209,8 @@ html_code = """<!DOCTYPE html>
                                        <option value="40'HC">40'HC</option>
                                        <option value="40'GP">40'GP</option>
                                        <option value="20'GP">20'GP</option>
-                                       <option value="45'HC">45'HC (High Cube)</option>
-                                       <option value="40'RF">40'RF (Reefer - Lạnh)</option>
-                                       <option value="20'RF">20'RF (Reefer - Lạnh)</option>
-                                       <option value="40'OT">40'OT (Open Top)</option>
-                                       <option value="20'OT">20'OT (Open Top)</option>
-                                       <option value="40'FR">40'FR (Flat Rack)</option>
+                                       <option value="45'HC">45'HC</option>
+                                       <option value="40'RF">40'RF</option>
                                    </select>
                                </div>
                                <div>
@@ -223,7 +220,7 @@ html_code = """<!DOCTYPE html>
                            </div>
                            <div>
                                <label class="text-slate-400 block mb-1">Hãng Tàu</label>
-                               <select v-model="tempShipment.preferredCarrier" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100">
+                               <select v-model="tempShipment.preferredCarrier" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100 font-semibold text-emerald-300">
                                    <option value="Wan Hai Lines">Wan Hai Lines</option>
                                    <option value="Evergreen Line">Evergreen Line</option>
                                    <option value="COSCO Shipping">COSCO Shipping</option>
@@ -764,8 +761,8 @@ html_code = """<!DOCTYPE html>
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: 'yyyy-mm-dd',
-                        eta: 'yyyy-mm-dd'
+                        etd: '2025-10-15',
+                        eta: '2025-10-25'
                     },
                     tempShipment: {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
@@ -777,9 +774,9 @@ html_code = """<!DOCTYPE html>
                         containerType: "40'HC",
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
-                        bookingDate: 'yyyy-mm-dd',
-                        etd: 'yyyy-mm-dd',
-                        eta: 'yyyy-mm-dd'
+                        bookingDate: '2025-10-13',
+                        etd: '2025-10-15',
+                        eta: '2025-10-25'
                     },
                     rateConfig: {
                         perCont: { thcBuy: 200, thcSell: 200, sealBuy: 10, sealSell: 10 },
@@ -826,8 +823,7 @@ html_code = """<!DOCTYPE html>
                         'Wan Hai Lines': { name: 'Wan Hai Lines', code: 'WHL', vessel: 'WAN HAI A01 E012', oceanFreight: 5230, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5438, delayDays: 2 },
                         'Evergreen Line': { name: 'Evergreen Line', code: 'EMC', vessel: 'EVER GIVEN V.088E', oceanFreight: 5150, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 1 },
                         'COSCO Shipping': { name: 'COSCO Shipping', code: 'COS', vessel: 'COSCO SHIPPING APEX', oceanFreight: 5100, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5300, delayDays: 3 },
-                        'ONE (Ocean Network Express)': { name: 'ONE (Ocean Network Express)', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
-                        'ONE': { name: 'ONE (Ocean Network Express)', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
+                        'ONE': { name: 'ONE', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
                         'Maersk Line': { name: 'Maersk Line', code: 'MSK', vessel: 'MAERSK MC-KINNEY', oceanFreight: 5400, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5700, delayDays: 0 },
                         'MSC': { name: 'MSC', code: 'MSC', vessel: 'MSC IRINA V.021', oceanFreight: 5050, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5280, delayDays: 2 },
                         'CMA CGM': { name: 'CMA CGM', code: 'CMA', vessel: 'CMA CGM JACQUES SAADE', oceanFreight: 5250, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5490, delayDays: 1 },
@@ -861,7 +857,7 @@ html_code = """<!DOCTYPE html>
                         { id: 305, type: 'BUY', provider: 'U&I Logistics Corp', carrier: 'COSCO Shipping', pol: 'Cái Mép TCIT (VNVUT)', pod: 'Rotterdam, NLD (NLRTM)', etd: '2026-10-25', slots: 3, containerType: "40'HC", price: 8100 },
                         { id: 306, type: 'SELL', provider: 'Pacific Star Logistics', carrier: 'COSCO Shipping', pol: 'Hải Phòng (VNHPH)', pod: 'Incheon, KOR (KRINC)', etd: '2026-10-19', slots: 5, containerType: "40'HC", price: 2100 },
                         { id: 307, type: 'SELL', provider: 'Delta Forwarding', carrier: 'CMA CGM', pol: 'Sài Gòn (VNSGN)', pod: 'Hamburg, DEU (DEHAM)', etd: '2026-10-28', slots: 2, containerType: "40'HC", price: 8400 },
-                        { id: 308, type: 'BUY', provider: 'Sunrise Trading', carrier: 'ONE (Ocean Network Express)', pol: 'Đà Nẵng (VNDAD)', pod: 'Tokyo, JPN (JPTKO)', etd: '2026-10-30', slots: 4, containerType: "40'GP", price: 2400 }
+                        { id: 308, type: 'BUY', provider: 'Sunrise Trading', carrier: 'ONE', pol: 'Đà Nẵng (VNDAD)', pod: 'Tokyo, JPN (JPTKO)', etd: '2026-10-30', slots: 4, containerType: "40'GP", price: 2400 }
                     ],
                     monthlyStress: [
                         { m: 1, idx: 65, prem: 15 },
@@ -1075,13 +1071,8 @@ html_code = """<!DOCTYPE html>
                     this.sellRateOverride = null;
                     
                     const selectedCarrierName = this.shipment.preferredCarrier || 'Wan Hai Lines';
-                    // ĐỒNG BỘ CHÍNH XÁC: Tra cứu trong allCarriersData, nếu tên hãng tàu có định dạng ngắn gọn (như 'ONE') thì map sang key chuẩn trong kho dữ liệu
-                    let lookupKey = selectedCarrierName;
-                    if (selectedCarrierName === 'ONE') lookupKey = 'ONE (Ocean Network Express)';
-                    
-                    const templateData = this.allCarriersData[lookupKey] || this.allCarriersData['Wan Hai Lines'];
+                    const templateData = this.allCarriersData[selectedCarrierName] || this.allCarriersData['Wan Hai Lines'];
 
-                    // CẬP NHẬT MẢNG CARRIERS ĐỂ TAB BÁO GIÁ HIỂN THỊ ĐÚNG HÃNG TÀU VÀ THÔNG SỐ VỪA CHỌN
                     this.carriers = [{
                         id: 1,
                         name: templateData.name,
@@ -1117,8 +1108,8 @@ html_code = """<!DOCTYPE html>
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: 'yyyy-mm-dd',
-                        eta: 'yyyy-mm-dd'
+                        etd: '2025-10-15',
+                        eta: '2025-10-25'
                     };
                     this.tempShipment = JSON.parse(JSON.stringify(this.shipment));
                     this.carriers = [{
