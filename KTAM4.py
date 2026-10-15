@@ -572,7 +572,7 @@ html_code = """
                <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4 w-full">
                    <div class="flex justify-between items-center pb-3 border-b border-slate-700/60">
                        <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                           <i class="fa-solid fa-right-left"></i> Phân Hệ E: Sàn Chuyển Nhượng Slot Space (DEMO Marketplace)
+                           <i class="fa-solid fa-right-left"></i> Sàn Chuyển Nhượng Slot Space (DEMO Marketplace)
                        </h3>
                        <span class="text-xs text-slate-400">Tuyến: <strong>{{ shipment.pol }} → {{ shipment.pod }}</strong></span>
                    </div>
