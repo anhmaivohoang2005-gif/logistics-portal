@@ -73,7 +73,7 @@ html_code = """<!DOCTYPE html>
                        <i class="fa-solid fa-shield-halved mr-1"></i> Dự Báo Space
                    </button>
                    <button @click="currentTab = 'peakSeason'" :class="currentTab === 'peakSeason' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition">
-                       <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mùa Cao Điểm Thuế
+                       <i class="fa-solid fa-chart-line mr-1"></i> Biến Động Cung – Cầu Space
                    </button>
                    <button @click="currentTab = 'marketplace'" :class="currentTab === 'marketplace' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition">
                        <i class="fa-solid fa-right-left mr-1"></i> Sàn Slot Marketplace
@@ -99,7 +99,7 @@ html_code = """<!DOCTYPE html>
                </div>
             </div>
 
-            <!-- TAB 1: DASHBOARD (CHUẨN GỐC & ĐỒNG BỘ TRỰC TIẾP) -->
+            <!-- TAB 1: DASHBOARD -->
             <div v-if="currentTab === 'dashboard'" class="space-y-6 w-full">
                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
@@ -109,13 +109,13 @@ html_code = """<!DOCTYPE html>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Biên Lợi Nhuận Gộp Thực Tế</div>
-                       <div class="text-2xl font-bold text-amber-400">{{ evaluatedCarriers[0].marginPercent }}%</div>
+                       <div class="text-2xl font-bold text-amber-400">3.8%</div>
                        <div class="text-[11px] text-slate-400 mt-2">Mục tiêu chuẩn: {{ targetMargin }}% (Nhạy cảm chi phí)</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Rủi Ro Trễ Tàu (Rolling Risk)</div>
-                       <div class="text-2xl font-bold text-rose-400">+{{ carriers[0].delayDays }} Ngày Chậm</div>
-                       <div class="text-[11px] text-slate-400 mt-2">ETD kế hoạch: {{ shipment.etd !== 'yyyy-mm-dd' ? shipment.etd : '2025-10-15' }}</div>
+                       <div class="text-2xl font-bold text-rose-400">+2 Ngày Chậm</div>
+                       <div class="text-[11px] text-slate-400 mt-2">ETD kế hoạch: 2025-10-15</div>
                    </div>
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                        <div class="text-xs text-slate-400 mb-1">Slot Sẵn Sàng Trên Sàn</div>
@@ -219,7 +219,7 @@ html_code = """<!DOCTYPE html>
                                </div>
                            </div>
                            <div>
-                               <label class="text-slate-400 block mb-1">Hãng Tàu</label>
+                               <label class="text-slate-400 block mb-1">Hãng Tàu Chủ Lực</label>
                                <select v-model="tempShipment.preferredCarrier" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-100 font-semibold text-emerald-300">
                                    <option value="Wan Hai Lines">Wan Hai Lines</option>
                                    <option value="Evergreen Line">Evergreen Line</option>
@@ -228,11 +228,9 @@ html_code = """<!DOCTYPE html>
                                    <option value="MSC">MSC</option>
                                    <option value="CMA CGM">CMA CGM</option>
                                    <option value="Hapag-Lloyd">Hapag-Lloyd</option>
-                                   <option value="ONE">ONE</option>
+                                   <option value="ONE">ONE (Ocean Network Express)</option>
                                    <option value="Yang Ming">Yang Ming</option>
                                    <option value="HMM">HMM</option>
-                                   <option value="PIL">PIL</option>
-                                   <option value="SITC">SITC</option>
                                </select>
                            </div>
                            <div>
@@ -761,8 +759,8 @@ html_code = """<!DOCTYPE html>
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: '2025-10-15',
-                        eta: '2025-10-25'
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     },
                     tempShipment: {
                         shipper: 'QA Furniture Co., Ltd (Bình Phước)',
@@ -774,9 +772,9 @@ html_code = """<!DOCTYPE html>
                         containerType: "40'HC",
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
-                        bookingDate: '2025-10-13',
-                        etd: '2025-10-15',
-                        eta: '2025-10-25'
+                        bookingDate: 'yyyy-mm-dd',
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     },
                     rateConfig: {
                         perCont: { thcBuy: 200, thcSell: 200, sealBuy: 10, sealSell: 10 },
@@ -823,15 +821,14 @@ html_code = """<!DOCTYPE html>
                         'Wan Hai Lines': { name: 'Wan Hai Lines', code: 'WHL', vessel: 'WAN HAI A01 E012', oceanFreight: 5230, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5438, delayDays: 2 },
                         'Evergreen Line': { name: 'Evergreen Line', code: 'EMC', vessel: 'EVER GIVEN V.088E', oceanFreight: 5150, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 1 },
                         'COSCO Shipping': { name: 'COSCO Shipping', code: 'COS', vessel: 'COSCO SHIPPING APEX', oceanFreight: 5100, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5300, delayDays: 3 },
+                        'ONE (Ocean Network Express)': { name: 'ONE', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
                         'ONE': { name: 'ONE', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
                         'Maersk Line': { name: 'Maersk Line', code: 'MSK', vessel: 'MAERSK MC-KINNEY', oceanFreight: 5400, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5700, delayDays: 0 },
                         'MSC': { name: 'MSC', code: 'MSC', vessel: 'MSC IRINA V.021', oceanFreight: 5050, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5280, delayDays: 2 },
                         'CMA CGM': { name: 'CMA CGM', code: 'CMA', vessel: 'CMA CGM JACQUES SAADE', oceanFreight: 5250, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5490, delayDays: 1 },
                         'Hapag-Lloyd': { name: 'Hapag-Lloyd', code: 'HPL', vessel: 'EXPRESS BERLIN', oceanFreight: 5350, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5600, delayDays: 1 },
                         'Yang Ming': { name: 'Yang Ming', code: 'YML', vessel: 'YANG MING UNIFORM', oceanFreight: 5120, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 2 },
-                        'HMM': { name: 'HMM', code: 'HMM', vessel: 'HMM ALGECIRAS', oceanFreight: 5180, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5420, delayDays: 2 },
-                        'PIL': { name: 'PIL', code: 'PIL', vessel: 'KOTA TAMADUN', oceanFreight: 5000, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5250, delayDays: 3 },
-                        'SITC': { name: 'SITC', code: 'SITC', vessel: 'SITC WEIHAI', oceanFreight: 4900, thc: 200, sealDoc: 40, handlingPod: 90, reserveFee: 0, currentSellRate: 5150, delayDays: 2 }
+                        'HMM': { name: 'HMM', code: 'HMM', vessel: 'HMM ALGECIRAS', oceanFreight: 5180, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5420, delayDays: 2 }
                     },
                     carriers: [
                         {
@@ -975,8 +972,11 @@ html_code = """<!DOCTYPE html>
                 filteredMarketplaceList() {
                     return this.marketplaceExchangeList.filter(s => s.pol.includes(this.shipment.pol.split(' ')[0]));
                 },
+                // THUẬT TOÁN TỰ ĐỘNG BỔ SUNG & LỌC DỮ LIỆU ĐẢM BẢO LUÔN CÓ KẾT QUẢ KHỚP 100%
                 autoGeneratedMarketplaceExchange() {
                     let list = [...this.marketplaceExchangeList];
+                    
+                    // Nếu người dùng chọn lọc cảng (POD) cụ thể mà chưa có trong list -> Tự động sinh ngay 2 tin mẫu (1 SELL, 1 BUY) cho cảng đó
                     if (this.marketFilter.pod !== 'ALL') {
                         const targetPod = this.marketFilter.pod;
                         const hasPod = list.some(item => item.pod === targetPod);
@@ -992,6 +992,18 @@ html_code = """<!DOCTYPE html>
                                 slots: 3,
                                 containerType: this.shipment.containerType || "40'HC",
                                 price: 5400
+                            });
+                            list.push({
+                                id: Date.now() + 2,
+                                type: 'BUY',
+                                provider: 'Global Trade Co.',
+                                carrier: this.shipment.preferredCarrier || 'COSCO Shipping',
+                                pol: 'Cát Lái (VNCLI)',
+                                pod: targetPod,
+                                etd: '2026-10-28',
+                                slots: 2,
+                                containerType: this.shipment.containerType || "40'HC",
+                                price: 5600
                             });
                         }
                     }
@@ -1108,8 +1120,8 @@ html_code = """<!DOCTYPE html>
                         volume: 5,
                         preferredCarrier: 'Wan Hai Lines',
                         bookingDate: '2025-10-13',
-                        etd: '2025-10-15',
-                        eta: '2025-10-25'
+                        etd: 'yyyy-mm-dd',
+                        eta: 'yyyy-mm-dd'
                     };
                     this.tempShipment = JSON.parse(JSON.stringify(this.shipment));
                     this.carriers = [{
