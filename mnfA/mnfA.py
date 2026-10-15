@@ -99,7 +99,7 @@ html_code = """<!DOCTYPE html>
                </div>
             </div>
 
-            <!-- TAB 1: DASHBOARD (ĐÃ CHUẨN GỐC) -->
+            <!-- TAB 1: DASHBOARD -->
             <div v-if="currentTab === 'dashboard'" class="space-y-6 w-full">
                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
@@ -827,12 +827,15 @@ html_code = """<!DOCTYPE html>
                         'Evergreen Line': { name: 'Evergreen Line', code: 'EMC', vessel: 'EVER GIVEN V.088E', oceanFreight: 5150, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 1 },
                         'COSCO Shipping': { name: 'COSCO Shipping', code: 'COS', vessel: 'COSCO SHIPPING APEX', oceanFreight: 5100, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5300, delayDays: 3 },
                         'ONE (Ocean Network Express)': { name: 'ONE (Ocean Network Express)', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
+                        'ONE': { name: 'ONE (Ocean Network Express)', code: 'ONE', vessel: 'ONE INNOVATION V.012', oceanFreight: 5300, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5550, delayDays: 1 },
                         'Maersk Line': { name: 'Maersk Line', code: 'MSK', vessel: 'MAERSK MC-KINNEY', oceanFreight: 5400, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5700, delayDays: 0 },
                         'MSC': { name: 'MSC', code: 'MSC', vessel: 'MSC IRINA V.021', oceanFreight: 5050, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5280, delayDays: 2 },
                         'CMA CGM': { name: 'CMA CGM', code: 'CMA', vessel: 'CMA CGM JACQUES SAADE', oceanFreight: 5250, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5490, delayDays: 1 },
                         'Hapag-Lloyd': { name: 'Hapag-Lloyd', code: 'HPL', vessel: 'EXPRESS BERLIN', oceanFreight: 5350, thc: 200, sealDoc: 50, handlingPod: 90, reserveFee: 0, currentSellRate: 5600, delayDays: 1 },
                         'Yang Ming': { name: 'Yang Ming', code: 'YML', vessel: 'YANG MING UNIFORM', oceanFreight: 5120, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5350, delayDays: 2 },
-                        'HMM': { name: 'HMM', code: 'HMM', vessel: 'HMM ALGECIRAS', oceanFreight: 5180, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5420, delayDays: 2 }
+                        'HMM': { name: 'HMM', code: 'HMM', vessel: 'HMM ALGECIRAS', oceanFreight: 5180, thc: 200, sealDoc: 48, handlingPod: 90, reserveFee: 0, currentSellRate: 5420, delayDays: 2 },
+                        'PIL': { name: 'PIL', code: 'PIL', vessel: 'KOTA TAMADUN', oceanFreight: 5000, thc: 200, sealDoc: 45, handlingPod: 90, reserveFee: 0, currentSellRate: 5250, delayDays: 3 },
+                        'SITC': { name: 'SITC', code: 'SITC', vessel: 'SITC WEIHAI', oceanFreight: 4900, thc: 200, sealDoc: 40, handlingPod: 90, reserveFee: 0, currentSellRate: 5150, delayDays: 2 }
                     },
                     carriers: [
                         {
@@ -994,18 +997,6 @@ html_code = """<!DOCTYPE html>
                                 containerType: this.shipment.containerType || "40'HC",
                                 price: 5400
                             });
-                            list.push({
-                                id: Date.now() + 2,
-                                type: 'BUY',
-                                provider: 'Global Trade Co.',
-                                carrier: this.shipment.preferredCarrier || 'COSCO Shipping',
-                                pol: 'Cát Lái (VNCLI)',
-                                pod: targetPod,
-                                etd: '2026-10-28',
-                                slots: 2,
-                                containerType: this.shipment.containerType || "40'HC",
-                                price: 5600
-                            });
                         }
                     }
 
@@ -1084,8 +1075,13 @@ html_code = """<!DOCTYPE html>
                     this.sellRateOverride = null;
                     
                     const selectedCarrierName = this.shipment.preferredCarrier || 'Wan Hai Lines';
-                    const templateData = this.allCarriersData[selectedCarrierName] || this.allCarriersData['Wan Hai Lines'];
+                    // ĐỒNG BỘ CHÍNH XÁC: Tra cứu trong allCarriersData, nếu tên hãng tàu có định dạng ngắn gọn (như 'ONE') thì map sang key chuẩn trong kho dữ liệu
+                    let lookupKey = selectedCarrierName;
+                    if (selectedCarrierName === 'ONE') lookupKey = 'ONE (Ocean Network Express)';
+                    
+                    const templateData = this.allCarriersData[lookupKey] || this.allCarriersData['Wan Hai Lines'];
 
+                    // CẬP NHẬT MẢNG CARRIERS ĐỂ TAB BÁO GIÁ HIỂN THỊ ĐÚNG HÃNG TÀU VÀ THÔNG SỐ VỪA CHỌN
                     this.carriers = [{
                         id: 1,
                         name: templateData.name,
